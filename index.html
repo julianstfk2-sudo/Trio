@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Trio</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#8a3b5e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Trio">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>
+:root{--accM:#8a3b5e;--bgM:#f3eaef;--accF:#1e5b66;--bgF:#e7eff0;--accC:#a86a12;--bgC:#f5eedf;--accE:#3d6b2f;--bgE:#eaf0e1;--card:#fff;--ink:#241c20;--mute:#6f6168;--g:#2e7d4f;--y:#a76b00;--r:#c0392b;--on:#fff;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--accM:#e08fb0;--bgM:#1d1318;--accF:#6fc1ce;--bgF:#101b1e;--accC:#e9b652;--bgC:#1e1910;--accE:#9ccc7a;--bgE:#141a10;--card:#1f1f23;--ink:#f1eaee;--mute:#a99ba2;--g:#6fcf97;--y:#f2c14e;--r:#ff8a7a;--on:#16100f}}
+:root[data-theme=dark]{--accM:#e08fb0;--bgM:#1d1318;--accF:#6fc1ce;--bgF:#101b1e;--accC:#e9b652;--bgC:#1e1910;--accE:#9ccc7a;--bgE:#141a10;--card:#1f1f23;--ink:#f1eaee;--mute:#a99ba2;--g:#6fcf97;--y:#f2c14e;--r:#ff8a7a;--on:#16100f}
+html[data-mode=m]{--acc:var(--accM);--bg:var(--bgM)}html[data-mode=f]{--acc:var(--accF);--bg:var(--bgF)}
+html[data-mode=c]{--acc:var(--accC);--bg:var(--bgC)}html[data-mode=e]{--acc:var(--accE);--bg:var(--bgE)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 -apple-system,system-ui,"Segoe UI",sans-serif}
+main{max-width:560px;margin:0 auto;padding:20px 16px 110px}
+h1,h2,h3{font-family:"Iowan Old Style",Georgia,serif;font-weight:600;margin:0 0 10px}h1{font-size:30px}h2{font-size:21px}h3{font-size:17px}
+p{margin:0 0 10px}.mute,small{color:var(--mute)}
+.card{background:var(--card);border-radius:22px;padding:18px;margin:0 0 16px}
+.btn{display:block;width:100%;min-height:48px;margin-top:12px;border:0;border-radius:14px;background:var(--acc);color:var(--on);font-weight:600;font-size:16px}
+.btn.s{background:#8882;color:var(--ink)}.btn.d{background:var(--r);color:var(--on)}
+.row{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+.chip{border:0;border-radius:99px;padding:9px 13px;background:#8881;color:var(--ink);font-size:15px}.chip.on{background:var(--acc);color:var(--on)}
+.moods{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}.moods .chip{border-radius:12px;min-height:44px;font-weight:600}
+input,textarea{width:100%;box-sizing:border-box;padding:12px;margin:6px 0;border:1px solid #8884;border-radius:12px;background:transparent;color:inherit;font:inherit}
+input[type=checkbox]{width:22px;height:22px;margin:0;accent-color:var(--acc);flex:none}input[type=range]{padding:0;border:0;accent-color:var(--acc)}
+.ck{display:flex;gap:12px;align-items:flex-start;padding:7px 0}
+.ring{position:relative;width:190px;height:190px;margin:4px auto 10px}.ring svg{width:100%;height:100%}
+.rc{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.rc b{font:600 62px/1 "Iowan Old Style",Georgia,serif}.rc small{font-size:12px}
+.c{text-align:center}.hint{background:color-mix(in srgb,var(--acc) 14%,transparent);border-radius:14px;padding:12px;margin:8px 0}
+.tl{display:flex;gap:12px;align-items:center;padding:16px;border-radius:18px;color:var(--on);margin-bottom:12px}.tl b{font-size:28px}
+.tl.g{background:var(--g)}.tl.y{background:var(--y)}.tl.r{background:var(--r)}
+.fd{border-left:5px solid;padding:8px 12px;margin:10px 0;border-radius:4px}.fd.g{border-color:var(--g)}.fd.y{border-color:var(--y)}.fd.r{border-color:var(--r)}
+.ev{display:flex;justify-content:space-between;gap:8px;align-items:center;padding:6px 0}
+.x{border:0;background:none;color:var(--mute);font-size:18px;padding:6px 10px}
+details{margin:0 0 16px}summary{color:var(--mute);padding:8px 0}
+nav{position:fixed;left:0;right:0;bottom:0;display:flex;gap:4px;padding:8px 12px calc(8px + env(safe-area-inset-bottom,0px));background:color-mix(in srgb,var(--card) 90%,transparent);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-top:1px solid #8882}
+nav button{flex:1;border:0;background:none;color:var(--mute);padding:6px 0;font-size:12px;font-weight:600}nav button.on{color:var(--acc)}nav b{display:block;font-size:20px}
+</style></head><body>
+<main id="app"></main>
+<nav>
+<button data-a="mode" data-v="m"><b>🌿</b>Mutter</button><button data-a="mode" data-v="f"><b>🤝</b>Vater</button>
+<button data-a="mode" data-v="c"><b>👥</b>Paar</button><button data-a="mode" data-v="e"><b>🍎</b>Essen</button>
+</nav>
+<script>
+// ---------- Zustand (nur lokal in diesem Browser) ----------
+const K='trio.v1';let S={};
+try{S=JSON.parse(localStorage.getItem(K))||{}}catch(e){}
+S=Object.assign({due:'',phase:'active',mode:'m',log:[],me:[],ev:[],wk:{},mid:{},plan:{},team:{},myAll:[]},S);
+const put=()=>{try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}};
+let D={mood:3,sy:[],note:'',share:false},P={mood:3,note:''},W={c:3,h:3,w:''},F={res:null,msg:'',code:'',txt:'',cam:false,al:[],name:''};
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt=t=>new Date(t).toLocaleString('de-DE',{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+const week=()=>{if(!S.due)return null;const d=(Date.now()-(new Date(S.due).getTime()-280*864e5))/864e5;return Math.min(42,Math.max(0,Math.floor(d/7)))};
+const SIZE=[[4,'ein Mohnsamen'],[8,'eine Himbeere'],[12,'eine Limette'],[16,'eine Avocado'],[20,'eine Banane'],[24,'ein Maiskolben'],[28,'eine Aubergine'],[32,'eine Kokosnuss'],[36,'ein Romanasalat'],[40,'eine Wassermelone']];
+const SY=[['tired','Erschöpft'],['nausea','Übelkeit'],['back','Rückenschmerzen'],['head','Kopfschmerzen'],['sleep','Schlecht geschlafen'],['low','Bedrückt'],['worry','Sorgen']];
+const MID={1:[['a','Hebamme suchen und anfragen (früh, Plätze sind knapp)'],['b','Ersten Vorsorgetermin vereinbaren'],['c','Vitamine mit Ärzt:in klären']],2:[['d','Geburtsvorbereitungskurs anmelden'],['e','Infoabend der Wunschklinik besuchen'],['f','Wochenbett-Betreuung mit der Hebamme klären']],3:[['g','Kliniktasche packen'],['h','Geburtswünsche mit der Hebamme besprechen'],['i','Unterlagen für Klinik und Mutterschutz bereithalten']]};
+const PLAN=[['p1','Elternzeit-Wünsche mit dem Arbeitgeber besprechen'],['p2','Antrag auf Elternzeit vorbereiten (Frist vorab prüfen)'],['p3','Elterngeld-Varianten vergleichen (Familienportal des Bundes)'],['p4','Unterlagen sammeln']];
+const TEAM=[['t1','Klinik oder Geburtshaus anmelden'],['t2','Geburtswünsche gemeinsam aufschreiben'],['t3','Rollen klären: Wer ruft wen an?'],['t4','Kliniktasche packen'],['t5','Notfallkontakte eintragen']];
+const chk=(st,items)=>items.map(([id,t])=>`<label class="ck"><input type="checkbox" data-c="tick" data-s="${st}" data-v="${id}" ${S[st][id]?'checked':''}><span>${t}</span></label>`).join('');
+const moods=(o,v,lo,hi)=>`<div class="moods">${[1,2,3,4,5].map(i=>`<button class="chip ${v==i?'on':''}" data-a="mood" data-o="${o}" data-v="${i}">${i}</button>`).join('')}</div><div class="row" style="justify-content:space-between;margin:4px 0"><small>${lo}</small><small>${hi}</small></div>`;
+const SOS='Rund um die Uhr erreichst du die Telefonseelsorge unter 0800 111 0 111 (kostenlos).';
+
+// ---------- Mutter ----------
+function settings(){return `<details><summary>Einstellungen</summary><div class="card"><p>Errechneter Termin</p><input type="date" id="due" value="${esc(S.due)}"><button class="btn s" data-a="setdue">Termin speichern</button>
+${S.phase==='active'?'<button class="btn s" data-a="pause">Begleitung pausieren</button><button class="btn s" data-a="loss">Die Schwangerschaft ist zu Ende gegangen</button>':'<button class="btn s" data-a="resume">Neu starten</button>'}
+<button class="btn s" data-a="exp">Daten sichern (exportieren)</button><label class="btn s" style="display:block;text-align:center;line-height:48px;margin-top:12px">Daten wiederherstellen<input type="file" accept="application/json,.json" data-c="imp" hidden></label><button class="btn d" data-a="wipe">Alle Daten löschen</button><p class="mute" style="margin-top:12px"><small>Alles bleibt in diesem Browser. Es gibt keinen Server und kein Konto.</small></p></div></details>`}
+function vM(){
+ if(S.phase==='loss')return `<div class="card"><h2>Es tut mir sehr leid.</h2><p>Du musst hier nichts eintragen. Zähler und Vergleiche sind ausgeschaltet.</p><p class="mute">Unterstützung findest du bei Hebamme oder Frauenärzt:in, bei Beratungsstellen wie pro familia. ${SOS}</p></div>`+settings();
+ if(S.phase==='paused')return `<div class="card"><h2>Pause</h2><p>Es wird nichts angezeigt. Du bestimmst, wann es weitergeht.</p><button class="btn" data-a="resume">Fortsetzen</button></div>`+settings();
+ if(!S.due)return `<div class="card"><h1>Willkommen bei Trio</h1><p>Wann ist der errechnete Geburtstermin?</p><input type="date" id="due"><button class="btn" data-a="setdue">Los geht’s</button></div>`;
+ const w=week(),t=w<14?1:w<28?2:3,sz=[...SIZE].reverse().find(s=>s[0]<=w);
+ const ring=`<div class="ring"><svg viewBox="0 0 200 200"><circle cx="100" cy="100" r="84" fill="none" stroke="currentColor" opacity=".15" stroke-width="12"/><circle cx="100" cy="100" r="84" fill="none" style="stroke:var(--acc)" stroke-width="12" stroke-linecap="round" stroke-dasharray="${Math.min(w,40)/40*528} 528" transform="rotate(-90 100 100)"/></svg><div class="rc"><b>${w}</b><small>Schwangerschaftswoche</small></div></div>`;
+ const recent=S.log.map((e,i)=>[e,i]).slice(-5).reverse().map(([e,i])=>`<div class="ev"><span><small>${fmt(e.t)}</small><br>Stimmung ${e.mood}/5${e.sy.length?' · '+e.sy.map(k=>SY.find(s=>s[0]===k)[1]).join(', '):''}${e.note?'<br>'+esc(e.note):''}</span><button class="x" data-a="del" data-v="${i}" aria-label="Löschen">✕</button></div>`).join('');
+ return `<div class="c">${ring}<h3>${t}. Trimester</h3>${sz?`<p class="mute">Als grobe Orientierung: ungefähr so groß wie ${sz[1]}.</p>`:''}</div>
+<div class="card"><h2>Wie geht es dir gerade?</h2>${moods('D',D.mood,'schwer','leicht')}
+<div class="row">${SY.map(([k,l])=>`<button class="chip ${D.sy.includes(k)?'on':''}" data-a="sy" data-v="${k}">${l}</button>`).join('')}</div>
+<textarea rows="3" placeholder="Was möchtest du festhalten? (optional)" data-o="D" data-k="note">${esc(D.note)}</textarea>
+<label class="ck"><input type="checkbox" data-c="share" ${D.share?'checked':''}><span>Als Hinweis für die Vater-Ansicht nutzen (nur Kategorien, nie dein Text)</span></label>
+<button class="btn" data-a="log">Eintrag speichern</button></div>
+${recent?`<div class="card"><h3>Zuletzt</h3>${recent}</div>`:''}
+<div class="card"><h2>Für dieses Trimester</h2>${chk('mid',MID[t])}</div>`+settings();
+}
+
+// ---------- Vater ----------
+const NEED={tired:'r',sleep:'r',nausea:'p',back:'p',head:'p',low:'c',worry:'l'};
+const OFF={r:'Viele Schwangere brauchen gerade mehr Ruhe am Abend. Du könntest Kochen oder Aufräumen übernehmen.',c:'Zehn Minuten nebeneinander sitzen, ohne Handy, kann schon viel bedeuten.',p:'Manche Paare teilen kleine Besorgungen auf. Du könntest eine abnehmen.'};
+function vF(){
+ const cut=Date.now()-48*36e5,need=new Set();
+ if(S.phase==='active')S.log.filter(e=>e.share&&e.t>cut).forEach(e=>{e.sy.forEach(k=>need.add(NEED[k]));if(e.mood<=2)need.add('c')});
+ let o=[...need].filter(n=>OFF[n]).slice(0,2).map(n=>OFF[n]);
+ if(!o.length)o=['Frag nach, was diese Woche am meisten helfen würde. Direkt fragen schlägt Raten.'];
+ const st=need.has('l')?'Ich habe Zeit, wenn du reden magst. Wie geht es dir gerade wirklich?':'Was war heute das Schönste und was das Anstrengendste für dich?';
+ const last=S.me.slice(-3),nudge=last.length===3&&last.every(e=>e.mood<=2);
+ return `<h1>Dein Beitrag</h1><div class="card"><h2>Heute könnte helfen</h2>${o.map(x=>`<div class="hint">${x}</div>`).join('')}<p class="mute" style="margin-top:12px"><i>Für ein Gespräch: „${st}“</i></p></div>
+<div class="card"><h2>Und du?</h2><p class="mute">Werdende Eltern erleben Sorgen und Überforderung. Das gehört dazu.</p>${moods('P',P.mood,'belastet','gut')}
+<textarea rows="3" placeholder="Was beschäftigt dich? (optional)" data-o="P" data-k="note">${esc(P.note)}</textarea><button class="btn" data-a="me">Für mich speichern</button>
+<p class="mute"><small>🔒 Bleibt in diesem Browser und fließt nirgends in die Hinweise ein.</small></p>
+${nudge?`<div class="hint">Dir ging es in letzter Zeit mehrfach nicht gut. Sprich mit jemandem, dem du vertraust, oder mit deiner Hausarztpraxis. ${SOS}</div>`:''}</div>
+<div class="card"><h2>Elternzeit und Finanzen</h2>${chk('plan',PLAN)}<p class="mute"><small>Fristen und Beträge ändern sich. Prüfe sie vor dem Antrag beim Arbeitgeber und im Familienportal des Bundes.</small></p></div>`;
+}
+
+// ---------- Paar ----------
+const wkKey=()=>{const d=new Date(),j=new Date(d.getFullYear(),0,1);return d.getFullYear()+'-W'+Math.ceil(((d-j)/864e5+j.getDay()+1)/7)};
+function vC(){
+ const up=S.ev.filter(e=>e.t>Date.now()).sort((a,b)=>a.t-b.t),n=up[0],all=[...S.ev].sort((a,b)=>a.t-b.t);
+ const days=n?Math.max(0,Math.ceil((n.t-Date.now())/864e5)):0;
+ const hist=Object.entries(S.wk).slice(-4).reverse().map(([k,v])=>`<div class="ev"><span><small>${k}</small><br>Verbunden ${v.c}/5, gehört ${v.h}/5${v.w?'<br>'+esc(v.w):''}</span></div>`).join('');
+ return `<h1>Wir</h1>${n?`<div class="card"><h2>${days===0?'Heute':'In '+days+(days===1?' Tag':' Tagen')}</h2><p>${esc(n.title)}<br><small>${fmt(n.t)}</small></p></div>`:''}
+<div class="card"><h2>Eure Termine</h2>${all.map(e=>`<div class="ev"><span>${esc(e.title)}<br><small>${fmt(e.t)}</small></span><button class="x" data-a="delev" data-v="${e.id}" aria-label="Löschen">✕</button></div>`).join('')||'<p class="mute">Noch keine Termine.</p>'}
+<input id="et" placeholder="Titel, z. B. Vorsorge"><input id="ed" type="datetime-local"><button class="btn s" data-a="addev">Termin hinzufügen</button></div>
+<div class="card"><h2>Wochen-Check-in</h2><p>Wie verbunden hast du dich diese Woche gefühlt? (${W.c})</p><input type="range" min="1" max="5" value="${W.c}" data-o="W" data-k="c">
+<p>Wie gehört hast du dich gefühlt? (${W.h})</p><input type="range" min="1" max="5" value="${W.h}" data-o="W" data-k="h">
+<textarea rows="2" placeholder="Wunsch für nächste Woche (optional)" data-o="W" data-k="w">${esc(W.w)}</textarea><button class="btn" data-a="wk">Speichern</button>${hist?'<h3 style="margin-top:16px">Verlauf</h3>'+hist:''}</div>
+<div class="card"><h2>Geburtsteam</h2>${chk('team',TEAM)}</div>`;
+}
+
+// ---------- Essen (Safe to Eat) ----------
+const L='(?<![\\p{L}])',R='(?![\\p{L}])',w=p=>`${L}(?:${p})${R}`,s=p=>`${L}(?:${p})`;
+const RULES=[
+['alc','r','Alkohol','In der Schwangerschaft wird empfohlen, ganz auf Alkohol zu verzichten.',[s('alkohol(?!frei)'),s('ethanol'),w('(?:rot|weiß|weiss|rosé|glüh|schaum)?wein(?:e|en)?'),w('(?:weiß|weiss|pils|weizen)?bier'),w('spirituosen?|likör|weinbrand|branntwein|whisk(?:e)?y|vodka|sekt|champagner|rum|schnaps|gin|alcohol(?!.?free)|beer|wine')],['alkoholfrei','alcohol.?free','non.?alcoholic','rum.?aroma','wine.?vinegar','weinessig','wine.?gum']],
+['alcf','y','Alkoholfrei, aber evtl. Restalkohol','„Alkoholfrei“ darf bis zu 0,5 % Alkohol enthalten. Frag im Zweifel bei deiner Hebamme nach.',['(?:alkoholfrei\\w*|alcohol.?free|non.?alcoholic)\\s+(?:bier|wein|sekt|beer|wine)','(?:bier|wein|sekt|beer|wine)\\s+(?:alkoholfrei|alcohol.?free)']],
+['raw','r','Rohmilch','Rohmilchprodukte können Keime wie Listerien enthalten. Viele Fachstellen raten in der Schwangerschaft davon ab.',['rohmilch|raw milk|lait cru|vorzugsmilch|unpasteuri[sz]ierte?r? milch|nicht pasteuri[sz]ierte?r? milch|unpasteuri[sz]ed milk']],
+['unp','y','Nicht pasteurisiert','Nicht erhitzte Produkte können Keime enthalten. Pasteurisierte Varianten gelten oft als besser geeignet.',['unpasteuri[sz]|nicht pasteuri[sz]|ohne pasteuri[sz]|nicht erhitzt'],[],['raw']],
+['soft','y','Weich- oder Schimmelkäse','Pasteurisierung ist nicht angegeben. Viele Fachstellen raten bei Weich- und Schimmelkäse zu pasteurisierter Milch. Frag im Zweifel nach oder erhitze ihn gut durch.',[s('camembert|brie(?![\\p{L}])|gorgonzola|roquefort|münster|limburger|romadur|rotschmier|schimmelkäse|weichkäse|blauschimmel|edelpilz|soft.?ripened|blue.?veined|mou?ld.?ripened')],[s('pasteuri[sz]')],['raw','unp']],
+['meat','r','Rohes Fleisch','Rohes oder nicht durcherhitztes Fleisch kann Keime und Parasiten (z. B. Toxoplasmen) enthalten. Viele Fachstellen raten ab.',[w('mett(?:wurst|brötchen)?|tatar|hackepeter|schabefleisch|rohes (?:hack|rind|schweine)?fleisch|raw (?:meat|beef|pork)|carpaccio|teewurst|streichwurst|tartare')],['(?:sauce|soße|sosse)\\s+tartare|tartare\\s*(?:sauce|soße)|tatarensauce|tartar sauce']],
+['cured','y','Rohwurst oder Rohschinken','Roh gepökelte oder luftgetrocknete Wurst und Schinken sind nicht durcherhitzt. Viele Fachstellen raten ab oder empfehlen nur gut durcherhitzt (z. B. auf Pizza).',[w('rohwurst|salami|rohschinken|parmaschinken|serrano|prosciutto|bresaola|coppa|lardo|pancetta|chorizo|(?:süd)?tiroler speck|schinkenspeck|nduja|cervelat|landjäger|dry.?cured|cured ham')],['pizza|durcherhitzt|gebacken']],
+['fish','r','Roher Fisch oder Meeresfrüchte','Roher Fisch und Austern können Keime enthalten. Viele Fachstellen raten in der Schwangerschaft ab.',[w('sushi|sashimi|ceviche|roher fisch|rohe[rn]? (?:lachs|thunfisch|fisch)|raw (?:fish|salmon|tuna)|austern|oysters?|poke')]],
+['smk','r','Kalt geräucherter oder gebeizter Fisch','Z. B. Räucherlachs oder Graved Lachs: kann Listerien enthalten. Viele Fachstellen raten ab.',[w('räucherlachs|graved\\w*|gravad\\w*|gebeizter? lachs|lachs gebeizt|smoked salmon|lox|kaltgeräucherte?r?|cold.?smoked')],['heißgeräuchert|heiss geräuchert|hot.?smoked']],
+['smy','y','Geräucherter Fisch','Ob kalt oder heiß geräuchert, ist oft unklar. Heiß geräuchert und gut durcherhitzt gilt als unkritischer. Frag im Zweifel nach.',[w('geräucherte[rn]? (?:fisch|lachs|makrele|forelle|hering)|smoked (?:fish|mackerel|trout|herring)|räucherfisch|schillerlocke')],[],['smk']],
+['hg','y','Fischart mit möglichem Quecksilbergehalt','Große Raubfische wie Schwertfisch oder Hai können viel Quecksilber enthalten. Viele Fachstellen raten, sie zu meiden.',[w('schwertfisch|swordfish|hai(?:fisch)?|shark|marlin|königsmakrele|king mackerel|frischer thunfisch|thunfischsteak|tuna steak')]],
+['egg','y','Rohes Ei möglich','Rohe Eier können Salmonellen enthalten. Achte auf pasteurisierte Eiprodukte oder durcherhitzte Zubereitung.',[w('rohe[rn]? eier|rohei|raw eggs?|tiramisu')],['pasteuri[sz]ierte? (?:vollei|eier|ei|eigelb|eiweiß)|pasteurised egg']],
+['liv','y','Leber oder Pastete','Leber enthält viel Vitamin A, Pasteten und Streichwürste sind oft anfällig für Listerien. Viele Fachstellen raten zur Zurückhaltung.',[w('leberwurst|leberpastete|leberstreichwurst|leber|liver|pastete|pâté|paté|foie gras|rillettes')]],
+['caf','y','Koffein','Viele Fachstellen (z. B. EFSA) nennen etwa 200 mg Koffein pro Tag als Obergrenze in der Schwangerschaft. Rechne alle Quellen zusammen.',['koffein|caffeine|guarana|kaffee|coffee|espresso|energy.?drink|energydrink|taurin',w('mate|yerba mate|colas?|cappuccino')]],
+['qui','r','Chinin','Chinin steckt z. B. in Tonic Water und Bitter Lemon. In der Schwangerschaft wird es häufig nicht empfohlen. Bei Fragen hilft deine Hebamme oder Ärztin.',['chinin|quinine',w('tonic(?: water)?|bitter.?lemon')]],
+['swt','y','Süßstoff mit Zurückhaltungsempfehlung','Für Saccharin und Cyclamat empfehlen viele Fachstellen in der Schwangerschaft Zurückhaltung.',[w('e ?954|saccharin|e ?952|cyclamat(?:e)?')]],
+['lic','y','Lakritz oder Süßholz','Bei regelmäßigem Verzehr größerer Mengen raten viele Fachstellen zur Zurückhaltung.',['lakritz|süßholz|glycyrrhiz|liquorice|licorice',w('e ?958')]]
+].map(([id,lvl,title,detail,p,u=[],sup=[]])=>({id,lvl,title,detail,p:p.map(x=>new RegExp(x,'iu')),u:u.map(x=>new RegExp(x,'iu')),sup}));
+function assess(txt){txt=txt.toLowerCase();const hit=new Set(),out=[];
+ for(const r of RULES){if(r.sup.some(x=>hit.has(x))||!r.p.some(x=>x.test(txt))||r.u.some(x=>x.test(txt)))continue;hit.add(r.id);out.push(r)}
+ return out}
+const ICON={g:'✓',y:'!',r:'✕'},LBL={g:'Nichts Auffälliges gefunden',y:'Mit Vorsicht',r:'Besser meiden'};
+const ALL=[['gluten','Gluten'],['crustaceans','Krebstiere'],['eggs','Eier'],['fish','Fisch'],['peanuts','Erdnüsse'],['soybeans','Soja'],['milk','Milch'],['nuts','Schalenfrüchte'],['celery','Sellerie'],['mustard','Senf'],['sesame-seeds','Sesam'],['sulphur-dioxide-and-sulphites','Sulfite'],['lupin','Lupine'],['molluscs','Weichtiere']];
+const alLbl=k=>(ALL.find(a=>a[0]===k)||[0,k.replace(/-/g,' ')])[1];
+function vE(){
+ let res='';
+ if(F.res){const f=F.res,lv=f.some(x=>x.lvl==='r')?'r':f.length?'y':'g';
+  res=`<div class="tl ${lv}"><b>${ICON[lv]}</b><div><b style="font-size:18px">${LBL[lv]}</b>${F.name?`<br>${esc(F.name)}`:''}</div></div>${f.map(x=>`<div class="fd ${x.lvl}"><b>${ICON[x.lvl]} ${x.title}</b><br>${x.detail}</div>`).join('')}${F.al.length?`<div class="card"><h3>Allergene laut Datenbank</h3><div class="row">${F.al.map(k=>`<span class="chip">${esc(alLbl(k))}</span>`).join('')}</div></div>`:''}<p class="mute"><small>Orientierungshilfe auf Basis der Zutatenangaben (Open Food Facts wird von Nutzern gepflegt). Keine medizinische Beratung und keine Garantie. Im Zweifel: Packung lesen, Hebamme oder Ärzt:in fragen.</small></p>`}
+ return `<h1>Safe to Eat</h1>${res}<div class="card"><h2>Barcode</h2>${F.cam?'<video id="vid" playsinline muted autoplay style="width:100%;max-height:50vh;object-fit:cover;border-radius:16px;background:#000"></video><button class="btn s" data-a="camoff">Abbrechen</button>':'<button class="btn" data-a="cam">Mit Kamera scannen</button>'}
+<input inputmode="numeric" placeholder="oder Barcode-Nummer (EAN)" value="${esc(F.code)}" data-o="F" data-k="code" style="margin-top:12px"><button class="btn s" data-a="scan">Nachschlagen</button>${F.msg?`<p class="mute" style="margin-top:10px">${F.msg}</p>`:''}</div>
+<div class="card"><h2>Zutaten prüfen</h2><p class="mute">Füge die Zutatenliste oder den Produktnamen ein.</p><textarea rows="3" placeholder="z. B. Rohmilchkäse, Salami, Tonic Water …" data-o="F" data-k="txt">${esc(F.txt)}</textarea><button class="btn" data-a="check">Prüfen</button></div>
+<details><summary>Meine Allergene</summary><div class="card"><div class="row">${ALL.map(([k,l])=>`<button class="chip ${S.myAll.includes(k)?'on':''}" data-a="al" data-v="${k}">${l}</button>`).join('')}</div></div></details>`;
+}
+const strip=a=>(a||[]).map(t=>t.replace(/^[a-z]{2}:/,''));
+async function scan(){
+ const code=F.code.replace(/\D/g,'');F.res=null;F.name='';F.al=[];
+ if(code.length<8||code.length>14){F.msg='Das ist keine gültige Barcode-Nummer.';return render()}
+ F.msg='Suche …';render();
+ try{const r=await fetch(`https://world.openfoodfacts.org/api/v2/product/${code}.json?fields=product_name,product_name_de,ingredients_text,ingredients_text_de,allergens_tags,traces_tags,categories_tags,labels_tags,additives_tags,ingredients_tags`);
+  const p=(await r.json()).product;if(!p){F.msg='Produkt nicht gefunden. Füge die Zutaten unten von Hand ein.';return render()}
+  const tags=a=>strip(a).map(t=>t.replace(/-/g,' ')).join(' '),nm=p.product_name_de||p.product_name||'',ing=p.ingredients_text_de||p.ingredients_text||'';
+  const t=[nm,ing,tags(p.categories_tags),tags(p.labels_tags),tags(p.additives_tags),tags(p.ingredients_tags)].filter(Boolean).join(' ');
+  F.name=nm;F.al=strip(p.allergens_tags);F.res=assess(t);
+  F.res.push(...F.al.filter(k=>S.myAll.includes(k)).map(k=>({lvl:'r',title:'Enthält '+alLbl(k),detail:'Das hast du als Allergen markiert.'})));
+  F.res.push(...strip(p.traces_tags).filter(k=>S.myAll.includes(k)).map(k=>({lvl:'y',title:'Spuren von '+alLbl(k)+' möglich',detail:'Das hast du als Allergen markiert.'})));
+  F.msg=ing?'':'Zu diesem Produkt fehlen Zutaten in der Datenbank. Lies die Packung.';
+ }catch(e){F.msg='Keine Verbindung zur Produktdatenbank. Prüfe dein Internet oder füge die Zutaten von Hand ein.'}
+ render();
+}
+// ---------- Kamera-Scan: BarcodeDetector (Android/Chrome) oder ZXing (iPhone/Safari) ----------
+let stream=null,zr=null,timer=null;
+function stopCam(){clearInterval(timer);timer=null;if(zr){try{zr.reset()}catch(e){}zr=null}if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}}
+const loadZX=()=>window.ZXing?Promise.resolve():new Promise((ok,no)=>{const s=document.createElement('script');s.src='https://unpkg.com/@zxing/library@0.21.3/umd/index.min.js';s.onload=ok;s.onerror=no;document.head.appendChild(s)});
+function gotCode(c){if(!F.cam)return;stopCam();F.cam=false;F.code=c;scan()}
+async function startCam(){
+ const v=$('#vid');if(!v){F.cam=false;return}if(stream||zr)return;
+ try{
+  if('BarcodeDetector' in window){
+   const det=new BarcodeDetector({formats:['ean_13','ean_8','upc_a','upc_e']});
+   stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});v.srcObject=stream;await v.play();
+   timer=setInterval(async()=>{try{const r=await det.detect(v);if(r[0])gotCode(r[0].rawValue)}catch(e){}},400);
+  }else{
+   await loadZX();zr=new ZXing.BrowserMultiFormatReader();
+   await zr.decodeFromVideoDevice(null,'vid',r=>{if(r)gotCode(r.getText())});
+  }
+ }catch(e){stopCam();F.cam=false;F.msg='Die Kamera ist nicht verfügbar (Zugriff erlaubt? Internet für die Scan-Bibliothek?). Tippe die Nummer ein.';render()}
+}
+// ---------- Sichern & Wiederherstellen ----------
+async function exp(){
+ const blob=new Blob([JSON.stringify(S)],{type:'application/json'}),name='trio-backup-'+new Date().toISOString().slice(0,10)+'.json';
+ try{const f=new File([blob],name,{type:'application/json'});if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f]});return}}catch(e){if(e.name==='AbortError')return}
+ const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+}
+
+// ---------- Aktionen ----------
+const O={D,P,W,F};
+const A={
+ mode(v){S.mode=v;put();render();scrollTo(0,0)},
+ mood(v,b){const o=b.dataset.o;(o==='D'?D:P).mood=+v;render()},
+ sy(v){D.sy=D.sy.includes(v)?D.sy.filter(x=>x!==v):[...D.sy,v];if(v==='worry')D.share=D.share;render()},
+ log(){S.log.push({t:Date.now(),mood:D.mood,sy:D.sy,note:D.note.trim(),share:D.share});D={mood:3,sy:[],note:'',share:false};O.D=D;put();render()},
+ del(v){S.log.splice(+v,1);put();render()},
+ me(){S.me.push({t:Date.now(),mood:P.mood,note:P.note.trim()});P={mood:3,note:''};O.P=P;put();render()},
+ setdue(){const v=$('#due').value;if(v){S.due=v;put();render()}},
+ pause(){S.phase='paused';put();render()},resume(){S.phase='active';put();render()},
+ loss(){if(confirm('Zähler und Vergleiche werden ausgeschaltet. Fortfahren?')){S.phase='loss';put();render()}},
+ wipe(){if(confirm('Wirklich alle Daten in diesem Browser löschen?')){try{localStorage.removeItem(K)}catch(e){}location.reload()}},
+ addev(){const t=$('#et').value.trim(),d=$('#ed').value;if(!t||!d)return;S.ev.push({id:Date.now().toString(36),title:t,t:new Date(d).getTime()});put();render()},
+ delev(v){S.ev=S.ev.filter(e=>e.id!==v);put();render()},
+ wk(){S.wk[wkKey()]={c:W.c,h:W.h,w:W.w.trim()};W={c:3,h:3,w:''};O.W=W;put();render()},
+ check(){F.name='';F.msg='';F.res=F.txt.trim()?assess(F.txt):null;if(!F.res)F.msg='Bitte gib Zutaten oder einen Produktnamen ein.';render()},
+ scan,exp,
+ cam(){F.cam=true;F.msg='';F.res=null;render()},camoff(){F.cam=false;render()},
+ al(v){S.myAll=S.myAll.includes(v)?S.myAll.filter(x=>x!==v):[...S.myAll,v];put();render()}
+};
+document.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(b&&A[b.dataset.a])A[b.dataset.a](b.dataset.v,b)});
+document.addEventListener('change',e=>{const b=e.target,c=b.dataset.c;if(c==='tick'){S[b.dataset.s][b.dataset.v]=b.checked;put()}if(c==='share')D.share=b.checked;if(c==='imp'){const f=b.files[0];if(!f)return;f.text().then(t=>{try{const d=JSON.parse(t);if(!d||!Array.isArray(d.log))throw 0;if(!confirm('Aktuelle Daten durch das Backup ersetzen?'))return;S=Object.assign({},S,d);put();render()}catch(e){alert('Diese Datei ist kein Trio-Backup.')}})}});
+document.addEventListener('input',e=>{const b=e.target,o=b.dataset.o;if(!o)return;const v=b.type==='range'?+b.value:b.value;O[o][b.dataset.k]=v;if(b.type==='range')b.previousElementSibling.textContent=b.previousElementSibling.textContent.replace(/\(\d\)/,`(${v})`)});
+function render(){const y=scrollY;stopCam();document.documentElement.dataset.mode=S.mode;$('#app').innerHTML=({m:vM,f:vF,c:vC,e:vE})[S.mode]();
+ document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===S.mode));scrollTo(0,y);if(F.cam&&S.mode==='e')startCam();else F.cam=false}
+if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
+render();
+</script></body></html>
