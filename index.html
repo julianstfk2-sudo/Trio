@@ -138,16 +138,21 @@ function bandFn(){const h=+S.h/100,w0=+S.w0;if(!(h>.9&&w0>30))return null;const 
 function wchart(){
  if(!S.due||!S.wt.length)return'';
  const pts=S.wt.map(e=>[sswOf(e.t),e.kg]),band=bandFn(),xs=pts.map(a=>a[0]),x0=Math.max(0,Math.floor(Math.min(...xs)-1)),x1=band?40:Math.ceil(Math.max(...xs)+1);
- let ys=pts.map(a=>a[1]);if(band)ys=ys.concat([band(x0)[0],band(x1)[1]]);
+ let ys=pts.map(a=>a[1]);if(band)ys=ys.concat([band(Math.max(x0,13))[0],band(x1)[1]]);
  const y0=Math.min(...ys)-1,y1=Math.max(...ys)+1,W=300,H=130,X=x=>8+(x-x0)/(x1-x0||1)*(W-16),Y=y=>H-14-(y-y0)/(y1-y0||1)*(H-26),g=[];
  let v=`<svg viewBox="0 0 ${W} ${H}" style="width:100%" role="img" aria-label="Gewichtsverlauf">`;
- if(band){for(let x=x0;x<=x1;x++)g.push(x);v+=`<polygon style="fill:var(--acc)" opacity=".16" points="${g.map(x=>X(x)+','+Y(band(x)[1])).join(' ')+' '+g.slice().reverse().map(x=>X(x)+','+Y(band(x)[0])).join(' ')}"/>`}
+ if(band){for(let x=Math.max(x0,13);x<=x1;x++)g.push(x);if(g.length>1)v+=`<polygon style="fill:var(--acc)" opacity=".16" points="${g.map(x=>X(x)+','+Y(band(x)[1])).join(' ')+' '+g.slice().reverse().map(x=>X(x)+','+Y(band(x)[0])).join(' ')}"/>`}
  v+=`<polyline fill="none" style="stroke:var(--acc)" stroke-width="2" points="${pts.map(a=>X(a[0])+','+Y(a[1])).join(' ')}"/>${pts.map(a=>`<circle cx="${X(a[0])}" cy="${Y(a[1])}" r="3" style="fill:var(--acc)"/>`).join('')}<g font-size="9" fill="currentColor" opacity=".6"><text x="8" y="${H-2}">SSW ${x0}</text><text x="${W-8}" y="${H-2}" text-anchor="end">SSW ${x1}</text><text x="8" y="10">${nf(y1)} kg</text></g></svg>`;
  return v}
+function wMsg(kg,t){const b=bandFn();if(!b)return'';const w=sswOf(t);
+ if(w<14)return'In den ersten Wochen schwankt das Gewicht oft, auch eine Abnahme durch Übelkeit ist häufig. Ein Orientierungsbereich wird ab der 14. Woche angezeigt.';
+ const[lo,hi]=b(w);
+ if(kg>=lo-1&&kg<=hi+1)return'Im Orientierungsbereich für diese Woche.';
+ return kg>hi+1?'Etwas über dem Orientierungsbereich für diese Woche. Das Gewicht schwankt von Tag zu Tag, allein ist das kein Grund zur Sorge. Erwähne es beim nächsten Vorsorgetermin. Bei plötzlicher starker Zunahme mit Schwellungen siehe Warnsignale.':'Etwas unter dem Orientierungsbereich für diese Woche. Das Gewicht schwankt von Tag zu Tag, allein ist das kein Grund zur Sorge. Erwähne es beim nächsten Vorsorgetermin.'}
 function weightCard(){
  const last=S.wt[S.wt.length-1],b=bandFn();let info='';
  if(last){const has=+S.w0>30,d=last.kg-(has?+S.w0:S.wt[0].kg);info=`<p>Aktuell <b>${nf(last.kg)} kg</b> (${d>=0?'+':''}${nf(d)} kg seit ${has?'Beginn der Schwangerschaft':'dem ersten Eintrag'}).</p>`;
-  if(b){const[lo,hi]=b(sswOf(last.t));info+=`<p class="mute"><small>${last.kg>=lo&&last.kg<=hi?'Im Orientierungsbereich für diese Woche.':'Außerhalb des Orientierungsbereichs. Sprich das gern bei Hebamme oder Ärzt:in an.'}</small></p>`}}
+  if(b)info+=`<p class="mute"><small>${wMsg(last.kg,last.t)}</small></p>`}
  return `<details class="card" ${UI.wo||S.wt.length?'open':''}><summary>Gewicht (optional)</summary><div style="margin-top:12px">${info}${wchart()}
 <div style="display:flex;gap:8px;margin-top:10px"><input id="wkg" inputmode="decimal" placeholder="Gewicht in kg" style="margin:0"><button class="btn" style="width:auto;margin:0;padding:0 18px" data-a="wtadd">Eintragen</button></div>
 ${S.wt.slice(-3).reverse().map(e=>`<div class="ev"><span>${nf(e.kg)} kg <small>${new Date(e.t).toLocaleDateString('de-DE')}</small></span><button class="x" data-a="delwt" data-v="${S.wt.indexOf(e)}" aria-label="Löschen">✕</button></div>`).join('')}
