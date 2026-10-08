@@ -50,6 +50,7 @@ a.btn{text-align:center;line-height:48px;text-decoration:none;box-sizing:border-
 .tool{display:block;width:100%;text-align:left;border:0;color:inherit;font:inherit;background:var(--card);border-radius:22px;padding:18px;margin:0 0 12px}.tool b{font-size:18px}.tool small{display:block;margin-top:4px}
 .tl.n{background:var(--mute)}.fd.n{border-color:var(--mute)}.big{font-size:44px;font-weight:600;font-family:"Iowan Old Style",Georgia,serif;text-align:center;margin:6px 0}
 </style></head><body>
+<div id="upd" hidden data-a="reload" style="position:fixed;top:calc(8px + env(safe-area-inset-top,0px));left:12px;right:12px;z-index:9;background:var(--acc);color:var(--on);padding:12px;border-radius:14px;text-align:center;font-weight:600">Neue Version bereit. Tippen zum Aktualisieren.</div>
 <main id="app"></main>
 <nav>
 <button data-a="mode" data-v="m"><b>🌿</b>Mutter</button><button data-a="mode" data-v="f"><b>🤝</b>Vater</button>
@@ -109,7 +110,7 @@ function settings(full){return `<details><summary>Einstellungen</summary><div cl
 ${full?`<p>Trinkziel pro Tag (ml)</p><input type="number" id="goal" inputmode="numeric" value="${S.goal||2000}"><p>Für den Gewichts-Orientierungsbereich (optional)</p><input type="number" id="hgt" inputmode="numeric" placeholder="Größe in cm" value="${esc(S.h)}"><input type="number" id="w0" inputmode="decimal" step="0.1" placeholder="Gewicht vor der Schwangerschaft in kg" value="${esc(S.w0)}">`:''}
 <button class="btn" data-a="savecfg">Speichern</button>
 ${full?(S.phase==='active'?'<button class="btn s" data-a="pause">Begleitung pausieren</button><button class="btn s" data-a="loss">Die Schwangerschaft ist zu Ende gegangen</button>':'<button class="btn s" data-a="resume">Neu starten</button>'):''}
-<button class="btn s" data-a="exp">Daten sichern (exportieren)</button><label class="btn s" style="display:block;text-align:center;line-height:48px;margin-top:12px">Daten wiederherstellen<input type="file" accept="application/json,.json" data-c="imp" hidden></label>
+<button class="btn s" data-a="upd">Auf Updates prüfen</button><button class="btn s" data-a="exp">Daten sichern (exportieren)</button><label class="btn s" style="display:block;text-align:center;line-height:48px;margin-top:12px">Daten wiederherstellen<input type="file" accept="application/json,.json" data-c="imp" hidden></label>
 <button class="btn d" data-a="wipe">Alle Daten löschen</button><p class="mute" style="margin-top:12px"><small>Alles bleibt in diesem Browser. Es gibt keinen Server und kein Konto.</small></p></div></details>`}
 
 // ---------- Trinktagebuch ----------
@@ -416,6 +417,7 @@ const A={
  wk(){S.wk[wkKey()]={c:W.c,h:W.h,w:W.w.trim()};W={c:3,h:3,w:''};O.W=W;put();render()},
  check(){F.name='';F.msg='';F.al=[];F.img='';F.res=F.txt.trim()?assess(F.txt):null;if(!F.res)F.msg='Bitte gib Zutaten oder einen Produktnamen ein.';render()},
  scan,exp,
+ reload(){location.reload()},upd(){checkUpdate(true)},
  tool(v){S.tool=v;put();render();scrollTo(0,0)},
  warnlink(){S.mode='t';S.tool='warn';put();render();scrollTo(0,0)},
  mvstart(){S.mvRun={t0:Date.now(),n:0};put();render()},
@@ -448,7 +450,24 @@ function render(){const y=scrollY;stopCam();const tabs=S.role?TABS[S.role]:[];if
  document.documentElement.dataset.mode=S.mode;{let h=({m:vM,f:vF,c:vC,e:vE,t:vT})[S.mode]();if(S.role&&S.mode!=='t')h=WL+h;$('#app').innerHTML=h}
  $('nav').hidden=!S.role;document.querySelectorAll('nav button').forEach(b=>{b.hidden=!tabs.includes(b.dataset.v);b.classList.toggle('on',b.dataset.v===S.mode)});
  scrollTo(0,y);if(F.cam&&S.mode==='e')startCam();else F.cam=false}
-if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+// ---------- Automatische Updates ----------
+let REG=null,VER=null,RLD=false;
+const verOf=async()=>{try{const r=await fetch('./index.html',{method:'HEAD',cache:'no-store'});return r.headers.get('etag')||r.headers.get('last-modified')||''}catch(e){return null}};
+const safeReload=()=>!(D.note||P.note||W.w||F.txt||F.code)&&!F.cam&&!S.mvRun&&!S.lbRun&&!(document.activeElement&&/^(INPUT|TEXTAREA)$/.test(document.activeElement.tagName));
+function applyUpdate(){if(RLD)return;if(safeReload()){RLD=true;location.reload()}else{const b=$('#upd');if(b)b.hidden=false}}
+async function checkUpdate(manual){
+ try{if(REG)await REG.update()}catch(e){}
+ const v=await verOf();
+ if(v&&VER&&v!==VER)applyUpdate();
+ else if(manual)alert(v===null?'Keine Verbindung. Update-Prüfung nicht möglich.':'Du hast die neueste Version.');
+}
+if('serviceWorker' in navigator){
+ const had=!!navigator.serviceWorker.controller;
+ navigator.serviceWorker.addEventListener('controllerchange',()=>{if(had)applyUpdate()});
+ addEventListener('load',()=>navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(r=>{REG=r}).catch(()=>{}));
+}
+addEventListener('load',()=>verOf().then(v=>VER=v));
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')checkUpdate(false)});
 setInterval(()=>{const r=S.mvRun,a=$('#mvt');if(r){if(a)a.textContent=dur(Date.now()-r.t0);if(Date.now()-r.t0>=72e5&&!r.w){r.w=1;put();render()}}const l=$('#lbt');if(S.lbRun&&l)l.textContent=dur(Date.now()-S.lbRun)},1000);
 try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
 render();
