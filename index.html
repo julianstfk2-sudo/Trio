@@ -40,6 +40,12 @@ input[type=checkbox]{width:22px;height:22px;margin:0;accent-color:var(--acc);fle
 details{margin:0 0 16px}summary{color:var(--mute);padding:8px 0}
 nav{position:fixed;left:0;right:0;bottom:0;display:flex;gap:4px;padding:8px 12px calc(8px + env(safe-area-inset-bottom,0px));background:color-mix(in srgb,var(--card) 90%,transparent);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-top:1px solid #8882}
 nav button{flex:1;border:0;background:none;color:var(--mute);padding:6px 0;font-size:12px;font-weight:600}nav button.on{color:var(--acc)}nav b{display:block;font-size:20px}
+[hidden]{display:none!important}
+.mo{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:22px;padding:8px 2px}.mo small{font-size:10px;line-height:1.1;text-align:center}
+.chip small,.tl small{color:inherit}
+.bar{height:10px;border-radius:5px;background:#8882;overflow:hidden;margin:10px 0}.bar i{display:block;height:100%;background:var(--acc);border-radius:5px}
+details.card summary{color:var(--ink);font-weight:600;padding:0}
+.pimg{width:64px;height:64px;object-fit:contain;border-radius:12px;background:#fff;flex:none}
 </style></head><body>
 <main id="app"></main>
 <nav>
@@ -50,78 +56,167 @@ nav button{flex:1;border:0;background:none;color:var(--mute);padding:6px 0;font-
 // ---------- Zustand (nur lokal in diesem Browser) ----------
 const K='trio.v1';let S={};
 try{S=JSON.parse(localStorage.getItem(K))||{}}catch(e){}
-S=Object.assign({due:'',phase:'active',mode:'m',log:[],me:[],ev:[],wk:{},mid:{},plan:{},team:{},myAll:[]},S);
+S=Object.assign({due:'',phase:'active',mode:'m',log:[],me:[],ev:[],wk:{},mid:{},plan:{},team:{},myAll:[],role:'',wt:[],dr:[],h:'',w0:'',goal:2000},S);
 const put=()=>{try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}};
-let D={mood:3,sy:[],note:'',share:false},P={mood:3,note:''},W={c:3,h:3,w:''},F={res:null,msg:'',code:'',txt:'',cam:false,al:[],name:''};
+let D={mood:3,sy:[],note:'',share:false},P={mood:3,note:''},W={c:3,h:3,w:''},F={res:null,msg:'',code:'',txt:'',cam:false,al:[],name:'',img:''},DR={k:'w'},UI={};
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=t=>new Date(t).toLocaleString('de-DE',{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
-const week=()=>{if(!S.due)return null;const d=(Date.now()-(new Date(S.due).getTime()-280*864e5))/864e5;return Math.min(42,Math.max(0,Math.floor(d/7)))};
+const PG=()=>{if(!S.due)return null;const n=Math.min(300,Math.max(0,(Date.now()-(new Date(S.due).getTime()-280*864e5))/864e5)),w=Math.min(42,Math.floor(n/7));return{w,d:Math.floor(n-w*7),f:Math.min(42,n/7)}};
+const week=()=>PG()?PG().w:null;
+const sswOf=t=>(t-(new Date(S.due).getTime()-280*864e5))/(7*864e5);
 const SIZE=[[4,'ein Mohnsamen'],[8,'eine Himbeere'],[12,'eine Limette'],[16,'eine Avocado'],[20,'eine Banane'],[24,'ein Maiskolben'],[28,'eine Aubergine'],[32,'eine Kokosnuss'],[36,'ein Romanasalat'],[40,'eine Wassermelone']];
 const SY=[['tired','Erschöpft'],['nausea','Übelkeit'],['back','Rückenschmerzen'],['head','Kopfschmerzen'],['sleep','Schlecht geschlafen'],['low','Bedrückt'],['worry','Sorgen']];
 const MID={1:[['a','Hebamme suchen und anfragen (früh, Plätze sind knapp)'],['b','Ersten Vorsorgetermin vereinbaren'],['c','Vitamine mit Ärzt:in klären']],2:[['d','Geburtsvorbereitungskurs anmelden'],['e','Infoabend der Wunschklinik besuchen'],['f','Wochenbett-Betreuung mit der Hebamme klären']],3:[['g','Kliniktasche packen'],['h','Geburtswünsche mit der Hebamme besprechen'],['i','Unterlagen für Klinik und Mutterschutz bereithalten']]};
 const PLAN=[['p1','Elternzeit-Wünsche mit dem Arbeitgeber besprechen'],['p2','Antrag auf Elternzeit vorbereiten (Frist vorab prüfen)'],['p3','Elterngeld-Varianten vergleichen (Familienportal des Bundes)'],['p4','Unterlagen sammeln']];
 const TEAM=[['t1','Klinik oder Geburtshaus anmelden'],['t2','Geburtswünsche gemeinsam aufschreiben'],['t3','Rollen klären: Wer ruft wen an?'],['t4','Kliniktasche packen'],['t5','Notfallkontakte eintragen']];
 const chk=(st,items)=>items.map(([id,t])=>`<label class="ck"><input type="checkbox" data-c="tick" data-s="${st}" data-v="${id}" ${S[st][id]?'checked':''}><span>${t}</span></label>`).join('');
-const moods=(o,v,lo,hi)=>`<div class="moods">${[1,2,3,4,5].map(i=>`<button class="chip ${v==i?'on':''}" data-a="mood" data-o="${o}" data-v="${i}">${i}</button>`).join('')}</div><div class="row" style="justify-content:space-between;margin:4px 0"><small>${lo}</small><small>${hi}</small></div>`;
 const SOS='Rund um die Uhr erreichst du die Telefonseelsorge unter 0800 111 0 111 (kostenlos).';
 
+// ---------- Bausteine ----------
+const nf=n=>n.toLocaleString('de-DE',{maximumFractionDigits:1}),gram=g=>g>=1000?nf(g/1000)+' kg':Math.round(g)+' g';
+const MOOD=[['😣','sehr schlecht'],['😕','schlecht'],['😐','geht so'],['🙂','gut'],['😄','sehr gut']];
+const moods=(o,v)=>`<div class="moods">${MOOD.map(([e,l],i)=>`<button class="chip mo ${v==i+1?'on':''}" data-a="mood" data-o="${o}" data-v="${i+1}"><span>${e}</span><small>${l}</small></button>`).join('')}</div>`;
+const FR={4:['🌱','ein Mohnsamen'],5:['🌱','ein Sesamkorn'],6:['🫘','eine Linse'],7:['🫐','eine Heidelbeere'],8:['🍓','eine Himbeere'],9:['🍇','eine Weintraube'],10:['🍓','eine Erdbeere'],11:['🫒','eine Feige'],12:['🍋','eine Limette'],13:['🍑','ein Pfirsich'],14:['🍋','eine Zitrone'],15:['🍎','ein Apfel'],16:['🥑','eine Avocado'],17:['🍐','eine Birne'],18:['🫑','eine Paprika'],19:['🥭','eine Mango'],20:['🍌','eine Banane'],21:['🥕','eine Karotte'],22:['🥒','eine Zucchini'],23:['🍊','eine Grapefruit'],24:['🌽','ein Maiskolben'],25:['🥦','ein Blumenkohl'],26:['🥬','ein Kopfsalat'],27:['🥦','ein großer Blumenkohl'],28:['🍆','eine Aubergine'],29:['🎃','ein Butternusskürbis'],30:['🥬','ein Kohlkopf'],31:['🥥','eine Kokosnuss'],32:['🥬','ein Chinakohl'],33:['🍍','eine Ananas'],34:['🍈','eine Honigmelone'],35:['🍈','eine große Honigmelone'],36:['🥬','ein Romanasalat'],37:['🥬','ein Mangold'],38:['🥬','eine Lauchstange'],39:['🍉','eine kleine Wassermelone'],40:['🍉','eine Wassermelone'],41:['🎃','ein kleiner Kürbis']};
+const ANC=[[4,.2,0],[8,1.6,1],[12,5.4,14],[16,11.6,100],[20,16.4,300],[24,30,600],[28,37.6,1000],[32,42.4,1700],[36,47.4,2600],[40,51.2,3400],[42,52,3600]];
+function sizeOf(f){if(f<=ANC[0][0])return[ANC[0][1],ANC[0][2]];for(let i=1;i<ANC.length;i++)if(f<=ANC[i][0]){const a=ANC[i-1],b=ANC[i],k=(f-a[0])/(b[0]-a[0]);return[a[1]+(b[1]-a[1])*k,a[2]+(b[2]-a[2])*k]}const l=ANC[ANC.length-1];return[l[1],l[2]]}
+const tri=p=>p.w<14?1:p.w<28?2:3;
+const TIPS={
+m:{1:['Bei Übelkeit helfen oft kleine, häufige Mahlzeiten und ein Zwieback vor dem Aufstehen.','Such früh eine Hebamme: Plätze sind oft knapp.','Müdigkeit ist im ersten Trimester sehr häufig. Gönn dir Pausen, wenn es geht.'],
+2:['Viele fühlen sich jetzt energiegeladener. Spazieren oder Schwimmen können gut tun, wenn nichts dagegen spricht.','Jetzt ist ein guter Zeitpunkt, einen Geburtsvorbereitungskurs zu buchen.','Erste Kindsbewegungen spürst du oft zwischen der 18. und 22. Woche.'],
+3:['Leg Kliniktasche und Unterlagen früh bereit.','Besprich mit deiner Hebamme Geburtswünsche und die Anzeichen, bei denen du sofort anrufen sollst.','Schlafen wird schwerer: Seitenlage mit einem Kissen zwischen den Knien kann helfen.']},
+f:{1:['Müdigkeit und Übelkeit sind häufig. Frag, ob es hilft, wenn du Küche und Gerüche übernimmst.','Auch deine Gefühle sind okay: Freude, Sorge, Unsicherheit. Sprich mit jemandem darüber.','Informiere dich über Elternzeit und Elterngeld, bevor Fristen drängen.'],
+2:['Geh wenn möglich zu einem Vorsorgetermin mit. Das stärkt die Bindung.','Sprich mit dem Baby: Ab etwa der 20. Woche hört es Geräusche von außen.','Plant gemeinsam das Kinderzimmer und kauft in Ruhe ein.'],
+3:['Klärt jetzt den Weg zur Klinik und wer wen anruft.','Pack eine eigene Tasche: Snacks, Ladekabel, Kleingeld für den Parkplatz.','Plane Elternzeit-Antrag und freie Tage rund um den Termin.']},
+c:{1:['Sprecht über Wünsche und Ängste: Wer erfährt wann von der Schwangerschaft?','Teilt Aufgaben nach Kraft, nicht nach Gewohnheit.','Vereinbart früh die Vorsorge und sucht eine Hebamme.'],
+2:['Nutzt die Zeit für etwas Schönes zu zweit, zum Beispiel einen Kurzurlaub.','Meldet euch gemeinsam zum Geburtsvorbereitungskurs an.','Besprecht Finanzen und Elternzeit: Wer nimmt wie lange?'],
+3:['Schreibt Geburtswünsche gemeinsam auf und klärt die Rollen.','Packt die Kliniktasche zusammen und prüft die Fahrt.','Plant die ersten Wochen: Besuch, Essen, Unterstützung.']}};
+const tipsCard=(r,t)=>`<div class="card"><h2>Tipps für das ${t}. Trimester</h2>${TIPS[r][t].map(x=>`<div class="hint">${x}</div>`).join('')}</div>`;
+const ringH=p=>`<div class="ring"><svg viewBox="0 0 200 200"><circle cx="100" cy="100" r="84" fill="none" stroke="currentColor" opacity=".15" stroke-width="12"/><circle cx="100" cy="100" r="84" fill="none" style="stroke:var(--acc)" stroke-width="12" stroke-linecap="round" stroke-dasharray="${Math.min(p.f,40)/40*528} 528" transform="rotate(-90 100 100)"/></svg><div class="rc"><b>${Math.min(p.w+1,42)}</b><small>Woche · SSW ${p.w}+${p.d}</small></div></div>`;
+function hero(p){const sz=sizeOf(p.f),fr=FR[Math.max(4,Math.min(41,p.w))];
+ return `<div class="c">${ringH(p)}<h3>${tri(p)}. Trimester</h3><p class="mute"><small>${p.w} Wochen und ${p.d} Tage sind abgeschlossen.</small></p></div>
+<div class="card c"><div style="font-size:56px;line-height:1.1" aria-hidden="true">${fr[0]}</div><p>Dein Baby ist ungefähr so groß wie <b>${fr[1]}</b>.</p><div class="bar"><i style="width:${Math.min(100,sz[0]/52*100)}%"></i></div><p class="mute"><small>ca. ${nf(sz[0])} cm und ca. ${gram(sz[1])}. Richtwerte, jedes Baby ist anders. Das Bild ist eine Veranschaulichung.</small></p></div>`}
+const welcome=()=>`<div class="card"><h1>Willkommen bei Trio</h1><p>Wer nutzt die App?</p><button class="btn" data-a="role" data-v="m">🌿 Ich bin schwanger (Mutter)</button><button class="btn" data-a="role" data-v="f">🤝 Ich bin Vater oder Partner:in</button><button class="btn" data-a="role" data-v="c">👥 Wir nutzen sie als Paar</button><p class="mute" style="margin-top:12px"><small>Die Wahl bestimmt Ansichten und Tipps. Du kannst sie später in den Einstellungen ändern. Alle Daten bleiben auf diesem Gerät.</small></p></div>`;
+const setup=()=>`<div class="card"><h2>Errechneter Geburtstermin</h2><p class="mute">Daraus berechnet Trio Woche, Größe und Tipps.</p><input type="date" id="due"><button class="btn" data-a="setdue">Weiter</button></div>`;
+const TABS={m:['m','c','e'],f:['f','c','e'],c:['m','f','c','e']};
+
+// ---------- Einstellungen ----------
+function settings(full){return `<details><summary>Einstellungen</summary><div class="card"><p>Ich nutze Trio als</p><div class="row">${[['m','Mutter'],['f','Vater/Partner:in'],['c','Paar']].map(([k,l])=>`<button class="chip ${S.role===k?'on':''}" data-a="role" data-v="${k}">${l}</button>`).join('')}</div>
+<p>Errechneter Termin</p><input type="date" id="due" value="${esc(S.due)}">
+${full?`<p>Trinkziel pro Tag (ml)</p><input type="number" id="goal" inputmode="numeric" value="${S.goal||2000}"><p>Für den Gewichts-Orientierungsbereich (optional)</p><input type="number" id="hgt" inputmode="numeric" placeholder="Größe in cm" value="${esc(S.h)}"><input type="number" id="w0" inputmode="decimal" step="0.1" placeholder="Gewicht vor der Schwangerschaft in kg" value="${esc(S.w0)}">`:''}
+<button class="btn" data-a="savecfg">Speichern</button>
+${full?(S.phase==='active'?'<button class="btn s" data-a="pause">Begleitung pausieren</button><button class="btn s" data-a="loss">Die Schwangerschaft ist zu Ende gegangen</button>':'<button class="btn s" data-a="resume">Neu starten</button>'):''}
+<button class="btn s" data-a="exp">Daten sichern (exportieren)</button><label class="btn s" style="display:block;text-align:center;line-height:48px;margin-top:12px">Daten wiederherstellen<input type="file" accept="application/json,.json" data-c="imp" hidden></label>
+<button class="btn d" data-a="wipe">Alle Daten löschen</button><p class="mute" style="margin-top:12px"><small>Alles bleibt in diesem Browser. Es gibt keinen Server und kein Konto.</small></p></div></details>`}
+
+// ---------- Trinktagebuch ----------
+const DK={w:['💧','Wasser, Kräutertee',0],k:['☕','Kaffee',40],t:['🍵','Schwarz-/Grüntee',20],c:['🥤','Cola',10],e:['⚡','Energydrink',32],s:['🧃','Saft, Sonstiges',0]};
+const today0=()=>{const d=new Date();d.setHours(0,0,0,0);return d.getTime()};
+function drinkCard(){
+ const goal=+S.goal||2000,min=goal*.75,hi=goal*1.75,td=S.dr.map((e,i)=>[e,i]).filter(([e])=>e.t>=today0()),tot=td.reduce((a,[e])=>a+e.ml,0),caf=Math.round(td.reduce((a,[e])=>a+e.ml*DK[e.k][2]/100,0));
+ const n=new Date(),h=n.getHours()+n.getMinutes()/60,exp=min*Math.min(1,Math.max(0,(h-7)/14)),left=Math.round(min-tot);
+ let lv,msg;
+ if(tot>hi){lv='y';msg='Sehr viel getrunken. Wenn das öfter vorkommt oder du dich unwohl fühlst, sprich mit Hebamme oder Ärzt:in.'}
+ else if(tot>=min){lv='g';msg='Gut so, der Mindestwert ist erreicht.'}
+ else if(tot>=exp*.8){lv='g';msg=`Auf Kurs. Noch ${left} ml bis zum Mindestwert.`}
+ else if(tot>=exp*.5){lv='y';msg=`Etwas wenig für diese Tageszeit. Noch ${left} ml bis zum Mindestwert.`}
+ else{lv='r';msg=`Deutlich zu wenig für diese Tageszeit. Ein Glas Wasser wäre jetzt gut. Noch ${left} ml bis zum Mindestwert.`}
+ const cl=caf>200?'r':caf>=150?'y':'g';
+ return `<div class="card"><h2>Trinktagebuch</h2><div class="tl ${lv}"><b>${ICON[lv]}</b><div><b>${tot} ml</b> von ${goal} ml<br><small>${msg}</small></div></div><div class="bar"><i style="width:${Math.min(100,tot/goal*100)}%"></i></div>
+${caf?`<div class="fd ${cl}"><b>${ICON[cl]} Koffein heute ca. ${caf} mg</b><br><small>Richtwert: insgesamt bis ca. 200 mg pro Tag.</small></div>`:''}
+<div class="row" style="margin-top:14px">${Object.entries(DK).map(([k,v])=>`<button class="chip ${DR.k===k?'on':''}" data-a="dk" data-v="${k}">${v[0]} ${v[1]}</button>`).join('')}</div>
+<div class="row">${[150,250,330,500].map(m=>`<button class="chip" data-a="drink" data-v="${m}">+${m} ml</button>`).join('')}</div>
+<div style="display:flex;gap:8px"><input id="dm" type="number" inputmode="numeric" placeholder="eigene Menge in ml" style="margin:0"><button class="btn" style="width:auto;margin:0;padding:0 20px" data-a="drinkc" aria-label="Hinzufügen">+</button></div>
+${td.length?`<div style="margin-top:10px">${td.slice().reverse().map(([e,i])=>`<div class="ev"><span>${DK[e.k][0]} ${e.ml} ml <small>${new Date(e.t).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})}</small></span><button class="x" data-a="deldr" data-v="${i}" aria-label="Löschen">✕</button></div>`).join('')}</div>`:''}
+<p class="mute"><small>Richtwert: etwa 1,5 bis 2 Liter Getränke pro Tag, mehr bei Hitze, Sport oder Übelkeit mit Erbrechen. Gibt dir deine Ärztin oder Hebamme einen anderen Wert vor, gilt dieser. Koffeingehalte sind grobe Schätzungen.</small></p></div>`}
+
+// ---------- Gewicht ----------
+function bandFn(){const h=+S.h/100,w0=+S.w0;if(!(h>.9&&w0>30))return null;const b=w0/(h*h),r=b<18.5?[.44,.58]:b<25?[.35,.5]:b<30?[.23,.33]:[.17,.27];return x=>{const f=Math.min(x,13)/13,e=Math.max(0,x-13);return[w0+.5*f+r[0]*e,w0+2*f+r[1]*e]}}
+function wchart(){
+ if(!S.due||!S.wt.length)return'';
+ const pts=S.wt.map(e=>[sswOf(e.t),e.kg]),band=bandFn(),xs=pts.map(a=>a[0]),x0=Math.max(0,Math.floor(Math.min(...xs)-1)),x1=band?40:Math.ceil(Math.max(...xs)+1);
+ let ys=pts.map(a=>a[1]);if(band)ys=ys.concat([band(x0)[0],band(x1)[1]]);
+ const y0=Math.min(...ys)-1,y1=Math.max(...ys)+1,W=300,H=130,X=x=>8+(x-x0)/(x1-x0||1)*(W-16),Y=y=>H-14-(y-y0)/(y1-y0||1)*(H-26),g=[];
+ let v=`<svg viewBox="0 0 ${W} ${H}" style="width:100%" role="img" aria-label="Gewichtsverlauf">`;
+ if(band){for(let x=x0;x<=x1;x++)g.push(x);v+=`<polygon style="fill:var(--acc)" opacity=".16" points="${g.map(x=>X(x)+','+Y(band(x)[1])).join(' ')+' '+g.slice().reverse().map(x=>X(x)+','+Y(band(x)[0])).join(' ')}"/>`}
+ v+=`<polyline fill="none" style="stroke:var(--acc)" stroke-width="2" points="${pts.map(a=>X(a[0])+','+Y(a[1])).join(' ')}"/>${pts.map(a=>`<circle cx="${X(a[0])}" cy="${Y(a[1])}" r="3" style="fill:var(--acc)"/>`).join('')}<g font-size="9" fill="currentColor" opacity=".6"><text x="8" y="${H-2}">SSW ${x0}</text><text x="${W-8}" y="${H-2}" text-anchor="end">SSW ${x1}</text><text x="8" y="10">${nf(y1)} kg</text></g></svg>`;
+ return v}
+function weightCard(){
+ const last=S.wt[S.wt.length-1],b=bandFn();let info='';
+ if(last){const has=+S.w0>30,d=last.kg-(has?+S.w0:S.wt[0].kg);info=`<p>Aktuell <b>${nf(last.kg)} kg</b> (${d>=0?'+':''}${nf(d)} kg seit ${has?'Beginn der Schwangerschaft':'dem ersten Eintrag'}).</p>`;
+  if(b){const[lo,hi]=b(sswOf(last.t));info+=`<p class="mute"><small>${last.kg>=lo&&last.kg<=hi?'Im Orientierungsbereich für diese Woche.':'Außerhalb des Orientierungsbereichs. Sprich das gern bei Hebamme oder Ärzt:in an.'}</small></p>`}}
+ return `<details class="card" ${UI.wo||S.wt.length?'open':''}><summary>Gewicht (optional)</summary><div style="margin-top:12px">${info}${wchart()}
+<div style="display:flex;gap:8px;margin-top:10px"><input id="wkg" inputmode="decimal" placeholder="Gewicht in kg" style="margin:0"><button class="btn" style="width:auto;margin:0;padding:0 18px" data-a="wtadd">Eintragen</button></div>
+${S.wt.slice(-3).reverse().map(e=>`<div class="ev"><span>${nf(e.kg)} kg <small>${new Date(e.t).toLocaleDateString('de-DE')}</small></span><button class="x" data-a="delwt" data-v="${S.wt.indexOf(e)}" aria-label="Löschen">✕</button></div>`).join('')}
+<p class="mute"><small>${b?'Der Bereich ist eine Orientierung nach Empfehlungen des US-Institute of Medicine. ':'Trag in den Einstellungen Größe und Gewicht vor der Schwangerschaft ein, dann zeigt Trio einen Orientierungsbereich. '}Die passende Zunahme ist individuell, zum Beispiel bei Zwillingen anders. Hebamme oder Ärzt:in beraten dich.</small></p></div></details>`}
+
 // ---------- Mutter ----------
-function settings(){return `<details><summary>Einstellungen</summary><div class="card"><p>Errechneter Termin</p><input type="date" id="due" value="${esc(S.due)}"><button class="btn s" data-a="setdue">Termin speichern</button>
-${S.phase==='active'?'<button class="btn s" data-a="pause">Begleitung pausieren</button><button class="btn s" data-a="loss">Die Schwangerschaft ist zu Ende gegangen</button>':'<button class="btn s" data-a="resume">Neu starten</button>'}
-<button class="btn s" data-a="exp">Daten sichern (exportieren)</button><label class="btn s" style="display:block;text-align:center;line-height:48px;margin-top:12px">Daten wiederherstellen<input type="file" accept="application/json,.json" data-c="imp" hidden></label><button class="btn d" data-a="wipe">Alle Daten löschen</button><p class="mute" style="margin-top:12px"><small>Alles bleibt in diesem Browser. Es gibt keinen Server und kein Konto.</small></p></div></details>`}
 function vM(){
- if(S.phase==='loss')return `<div class="card"><h2>Es tut mir sehr leid.</h2><p>Du musst hier nichts eintragen. Zähler und Vergleiche sind ausgeschaltet.</p><p class="mute">Unterstützung findest du bei Hebamme oder Frauenärzt:in, bei Beratungsstellen wie pro familia. ${SOS}</p></div>`+settings();
- if(S.phase==='paused')return `<div class="card"><h2>Pause</h2><p>Es wird nichts angezeigt. Du bestimmst, wann es weitergeht.</p><button class="btn" data-a="resume">Fortsetzen</button></div>`+settings();
- if(!S.due)return `<div class="card"><h1>Willkommen bei Trio</h1><p>Wann ist der errechnete Geburtstermin?</p><input type="date" id="due"><button class="btn" data-a="setdue">Los geht’s</button></div>`;
- const w=week(),t=w<14?1:w<28?2:3,sz=[...SIZE].reverse().find(s=>s[0]<=w);
- const ring=`<div class="ring"><svg viewBox="0 0 200 200"><circle cx="100" cy="100" r="84" fill="none" stroke="currentColor" opacity=".15" stroke-width="12"/><circle cx="100" cy="100" r="84" fill="none" style="stroke:var(--acc)" stroke-width="12" stroke-linecap="round" stroke-dasharray="${Math.min(w,40)/40*528} 528" transform="rotate(-90 100 100)"/></svg><div class="rc"><b>${w}</b><small>Schwangerschaftswoche</small></div></div>`;
- const recent=S.log.map((e,i)=>[e,i]).slice(-5).reverse().map(([e,i])=>`<div class="ev"><span><small>${fmt(e.t)}</small><br>Stimmung ${e.mood}/5${e.sy.length?' · '+e.sy.map(k=>SY.find(s=>s[0]===k)[1]).join(', '):''}${e.note?'<br>'+esc(e.note):''}</span><button class="x" data-a="del" data-v="${i}" aria-label="Löschen">✕</button></div>`).join('');
- return `<div class="c">${ring}<h3>${t}. Trimester</h3>${sz?`<p class="mute">Als grobe Orientierung: ungefähr so groß wie ${sz[1]}.</p>`:''}</div>
-<div class="card"><h2>Wie geht es dir gerade?</h2>${moods('D',D.mood,'schwer','leicht')}
+ if(!S.role)return welcome();
+ if(S.phase==='loss')return `<div class="card"><h2>Es tut mir sehr leid.</h2><p>Du musst hier nichts eintragen. Zähler und Vergleiche sind ausgeschaltet.</p><p class="mute">Unterstützung findest du bei Hebamme oder Frauenärzt:in, bei Beratungsstellen wie pro familia. ${SOS}</p></div>`+settings(true);
+ if(S.phase==='paused')return `<div class="card"><h2>Pause</h2><p>Es wird nichts angezeigt. Du bestimmst, wann es weitergeht.</p><button class="btn" data-a="resume">Fortsetzen</button></div>`+settings(true);
+ if(!S.due)return setup();
+ const p=PG(),t=tri(p);
+ const recent=S.log.map((e,i)=>[e,i]).slice(-5).reverse().map(([e,i])=>`<div class="ev"><span><small>${fmt(e.t)}</small><br>${MOOD[e.mood-1][0]} ${MOOD[e.mood-1][1]}${e.sy.length?' · '+e.sy.map(k=>SY.find(s=>s[0]===k)[1]).join(', '):''}${e.note?'<br>'+esc(e.note):''}</span><button class="x" data-a="del" data-v="${i}" aria-label="Löschen">✕</button></div>`).join('');
+ return `${hero(p)}${tipsCard('m',t)}
+<div class="card"><h2>Wie fühlst du dich gerade?</h2>${moods('D',D.mood)}
 <div class="row">${SY.map(([k,l])=>`<button class="chip ${D.sy.includes(k)?'on':''}" data-a="sy" data-v="${k}">${l}</button>`).join('')}</div>
 <textarea rows="3" placeholder="Was möchtest du festhalten? (optional)" data-o="D" data-k="note">${esc(D.note)}</textarea>
 <label class="ck"><input type="checkbox" data-c="share" ${D.share?'checked':''}><span>Als Hinweis für die Vater-Ansicht nutzen (nur Kategorien, nie dein Text)</span></label>
 <button class="btn" data-a="log">Eintrag speichern</button></div>
-${recent?`<div class="card"><h3>Zuletzt</h3>${recent}</div>`:''}
-<div class="card"><h2>Für dieses Trimester</h2>${chk('mid',MID[t])}</div>`+settings();
+${recent?`<div class="card"><h3>Zuletzt</h3>${recent}</div>`:''}${drinkCard()}${weightCard()}
+<div class="card"><h2>Für dieses Trimester</h2>${chk('mid',MID[t])}</div>`+settings(true);
 }
 
 // ---------- Vater ----------
 const NEED={tired:'r',sleep:'r',nausea:'p',back:'p',head:'p',low:'c',worry:'l'};
 const OFF={r:'Viele Schwangere brauchen gerade mehr Ruhe am Abend. Du könntest Kochen oder Aufräumen übernehmen.',c:'Zehn Minuten nebeneinander sitzen, ohne Handy, kann schon viel bedeuten.',p:'Manche Paare teilen kleine Besorgungen auf. Du könntest eine abnehmen.'};
 function vF(){
- const cut=Date.now()-48*36e5,need=new Set();
+ if(!S.role)return welcome();if(!S.due)return setup();
+ const p=PG(),cut=Date.now()-48*36e5,need=new Set();
  if(S.phase==='active')S.log.filter(e=>e.share&&e.t>cut).forEach(e=>{e.sy.forEach(k=>need.add(NEED[k]));if(e.mood<=2)need.add('c')});
  let o=[...need].filter(n=>OFF[n]).slice(0,2).map(n=>OFF[n]);
  if(!o.length)o=['Frag nach, was diese Woche am meisten helfen würde. Direkt fragen schlägt Raten.'];
  const st=need.has('l')?'Ich habe Zeit, wenn du reden magst. Wie geht es dir gerade wirklich?':'Was war heute das Schönste und was das Anstrengendste für dich?';
  const last=S.me.slice(-3),nudge=last.length===3&&last.every(e=>e.mood<=2);
- return `<h1>Dein Beitrag</h1><div class="card"><h2>Heute könnte helfen</h2>${o.map(x=>`<div class="hint">${x}</div>`).join('')}<p class="mute" style="margin-top:12px"><i>Für ein Gespräch: „${st}“</i></p></div>
-<div class="card"><h2>Und du?</h2><p class="mute">Werdende Eltern erleben Sorgen und Überforderung. Das gehört dazu.</p>${moods('P',P.mood,'belastet','gut')}
+ return `${hero(p)}${tipsCard('f',tri(p))}<div class="card"><h2>Heute könnte helfen</h2>${o.map(x=>`<div class="hint">${x}</div>`).join('')}<p class="mute" style="margin-top:12px"><i>Für ein Gespräch: „${st}“</i></p></div>
+<div class="card"><h2>Wie geht es dir heute?</h2><p class="mute">Werdende Eltern erleben Sorgen und Überforderung. Das gehört dazu.</p>${moods('P',P.mood)}
 <textarea rows="3" placeholder="Was beschäftigt dich? (optional)" data-o="P" data-k="note">${esc(P.note)}</textarea><button class="btn" data-a="me">Für mich speichern</button>
 <p class="mute"><small>🔒 Bleibt in diesem Browser und fließt nirgends in die Hinweise ein.</small></p>
 ${nudge?`<div class="hint">Dir ging es in letzter Zeit mehrfach nicht gut. Sprich mit jemandem, dem du vertraust, oder mit deiner Hausarztpraxis. ${SOS}</div>`:''}</div>
-<div class="card"><h2>Elternzeit und Finanzen</h2>${chk('plan',PLAN)}<p class="mute"><small>Fristen und Beträge ändern sich. Prüfe sie vor dem Antrag beim Arbeitgeber und im Familienportal des Bundes.</small></p></div>`;
+<div class="card"><h2>Elternzeit und Finanzen</h2>${chk('plan',PLAN)}<p class="mute"><small>Fristen und Beträge ändern sich. Prüfe sie vor dem Antrag beim Arbeitgeber und im Familienportal des Bundes.</small></p></div>`+settings(false);
 }
 
 // ---------- Paar ----------
 const wkKey=()=>{const d=new Date(),j=new Date(d.getFullYear(),0,1);return d.getFullYear()+'-W'+Math.ceil(((d-j)/864e5+j.getDay()+1)/7)};
 function vC(){
- const up=S.ev.filter(e=>e.t>Date.now()).sort((a,b)=>a.t-b.t),n=up[0],all=[...S.ev].sort((a,b)=>a.t-b.t);
+ if(!S.role)return welcome();if(!S.due)return setup();
+ const p=PG(),up=S.ev.filter(e=>e.t>Date.now()).sort((a,b)=>a.t-b.t),n=up[0],all=[...S.ev].sort((a,b)=>a.t-b.t);
  const days=n?Math.max(0,Math.ceil((n.t-Date.now())/864e5)):0;
  const hist=Object.entries(S.wk).slice(-4).reverse().map(([k,v])=>`<div class="ev"><span><small>${k}</small><br>Verbunden ${v.c}/5, gehört ${v.h}/5${v.w?'<br>'+esc(v.w):''}</span></div>`).join('');
- return `<h1>Wir</h1>${n?`<div class="card"><h2>${days===0?'Heute':'In '+days+(days===1?' Tag':' Tagen')}</h2><p>${esc(n.title)}<br><small>${fmt(n.t)}</small></p></div>`:''}
+ return `${hero(p)}${tipsCard('c',tri(p))}${n?`<div class="card"><h2>${days===0?'Heute':'In '+days+(days===1?' Tag':' Tagen')}</h2><p>${esc(n.title)}<br><small>${fmt(n.t)}</small></p></div>`:''}
 <div class="card"><h2>Eure Termine</h2>${all.map(e=>`<div class="ev"><span>${esc(e.title)}<br><small>${fmt(e.t)}</small></span><button class="x" data-a="delev" data-v="${e.id}" aria-label="Löschen">✕</button></div>`).join('')||'<p class="mute">Noch keine Termine.</p>'}
 <input id="et" placeholder="Titel, z. B. Vorsorge"><input id="ed" type="datetime-local"><button class="btn s" data-a="addev">Termin hinzufügen</button></div>
-<div class="card"><h2>Wochen-Check-in</h2><p>Wie verbunden hast du dich diese Woche gefühlt? (${W.c})</p><input type="range" min="1" max="5" value="${W.c}" data-o="W" data-k="c">
-<p>Wie gehört hast du dich gefühlt? (${W.h})</p><input type="range" min="1" max="5" value="${W.h}" data-o="W" data-k="h">
+<div class="card"><h2>Wochen-Check-in</h2><p>Wie verbunden hast du dich diese Woche gefühlt? (${W.c})</p><input type="range" min="1" max="5" value="${W.c}" data-o="W" data-k="c"><div class="row" style="justify-content:space-between;margin:0"><small>kaum</small><small>sehr</small></div>
+<p>Wie gehört hast du dich gefühlt? (${W.h})</p><input type="range" min="1" max="5" value="${W.h}" data-o="W" data-k="h"><div class="row" style="justify-content:space-between;margin:0"><small>kaum</small><small>sehr</small></div>
 <textarea rows="2" placeholder="Wunsch für nächste Woche (optional)" data-o="W" data-k="w">${esc(W.w)}</textarea><button class="btn" data-a="wk">Speichern</button>${hist?'<h3 style="margin-top:16px">Verlauf</h3>'+hist:''}</div>
-<div class="card"><h2>Geburtsteam</h2>${chk('team',TEAM)}</div>`;
+<div class="card"><h2>Geburtsteam</h2>${chk('team',TEAM)}</div>`+settings(true);
 }
 
 // ---------- Essen (Safe to Eat) ----------
 const L='(?<![\\p{L}])',R='(?![\\p{L}])',w=p=>`${L}(?:${p})${R}`,s=p=>`${L}(?:${p})`;
+const AMT={
+caf:'Richtwert: insgesamt bis ca. 200 mg Koffein pro Tag. Grob: 1 Tasse Filterkaffee (200 ml) ≈ 90 mg, 1 Espresso ≈ 60 mg, 1 Glas Cola (330 ml) ≈ 35 mg, 1 Tasse Schwarztee ≈ 45 mg, 1 Dose Energydrink (250 ml) ≈ 80 mg. Die Werte schwanken je nach Produkt.',
+alcf:'Bei 0,5 % Vol. enthält ein halber Liter etwa 2 g reinen Alkohol. Viele Fachstellen raten trotzdem zu Zurückhaltung.',
+unp:'Eine sichere Menge gibt es nicht. Im Zweifel weglassen oder gut durcherhitzen (kochen, braten).',
+soft:'Pasteurisierte Sorten gelten meist als unkritischer. Eine feste Mengenangabe gibt es nicht. Im Zweifel weglassen oder gut durcherhitzen.',
+cured:'Eine sichere Menge roh gibt es nicht. Gut durcherhitzt (z. B. gebacken auf Pizza) gilt es als unkritischer.',
+smy:'Heiß geräuchert und gut durcherhitzt gilt als unkritischer. Kalt geräuchert besser weglassen.',
+hg:'Schwertfisch, Hai und Marlin besser ganz meiden. Frischen Thunfisch nur selten essen. Die Mengenangaben unterscheiden sich je nach Fachstelle.',
+egg:'Eier und Eierspeisen gut durcherhitzen, bis Eiweiß und Eigelb fest sind. Roh nur pasteurisierte Eiprodukte.',
+liv:'Eine feste Obergrenze gibt es nicht. Viele raten, auf Leber ganz zu verzichten oder sie nur selten und in kleiner Portion zu essen.',
+swt:'Eine feste Menge gibt es nicht. Wenn du vorsichtig sein willst, wähle Produkte ohne diese Süßstoffe.',
+lic:'Eine verlässliche Obergrenze für die Schwangerschaft gibt es nicht. Eher selten und in kleinen Mengen (wenige Stück), nicht täglich.'};
 const RULES=[
 ['alc','r','Alkohol','In der Schwangerschaft wird empfohlen, ganz auf Alkohol zu verzichten.',[s('alkohol(?!frei)'),s('ethanol'),w('(?:rot|weiß|weiss|rosé|glüh|schaum)?wein(?:e|en)?'),w('(?:weiß|weiss|pils|weizen)?bier'),w('spirituosen?|likör|weinbrand|branntwein|whisk(?:e)?y|vodka|sekt|champagner|rum|schnaps|gin|alcohol(?!.?free)|beer|wine')],['alkoholfrei','alcohol.?free','non.?alcoholic','rum.?aroma','wine.?vinegar','weinessig','wine.?gum']],
 ['alcf','y','Alkoholfrei, aber evtl. Restalkohol','„Alkoholfrei“ darf bis zu 0,5 % Alkohol enthalten. Frag im Zweifel bei deiner Hebamme nach.',['(?:alkoholfrei\\w*|alcohol.?free|non.?alcoholic)\\s+(?:bier|wein|sekt|beer|wine)','(?:bier|wein|sekt|beer|wine)\\s+(?:alkoholfrei|alcohol.?free)']],
@@ -140,7 +235,7 @@ const RULES=[
 ['qui','r','Chinin','Chinin steckt z. B. in Tonic Water und Bitter Lemon. In der Schwangerschaft wird es häufig nicht empfohlen. Bei Fragen hilft deine Hebamme oder Ärztin.',['chinin|quinine',w('tonic(?: water)?|bitter.?lemon')]],
 ['swt','y','Süßstoff mit Zurückhaltungsempfehlung','Für Saccharin und Cyclamat empfehlen viele Fachstellen in der Schwangerschaft Zurückhaltung.',[w('e ?954|saccharin|e ?952|cyclamat(?:e)?')]],
 ['lic','y','Lakritz oder Süßholz','Bei regelmäßigem Verzehr größerer Mengen raten viele Fachstellen zur Zurückhaltung.',['lakritz|süßholz|glycyrrhiz|liquorice|licorice',w('e ?958')]]
-].map(([id,lvl,title,detail,p,u=[],sup=[]])=>({id,lvl,title,detail,p:p.map(x=>new RegExp(x,'iu')),u:u.map(x=>new RegExp(x,'iu')),sup}));
+].map(([id,lvl,title,detail,p,u=[],sup=[]])=>({id,lvl,title,detail,p:p.map(x=>new RegExp(x,'iu')),u:u.map(x=>new RegExp(x,'iu')),sup,amt:AMT[id]||''}));
 function assess(txt){txt=txt.toLowerCase();const hit=new Set(),out=[];
  for(const r of RULES){if(r.sup.some(x=>hit.has(x))||!r.p.some(x=>x.test(txt))||r.u.some(x=>x.test(txt)))continue;hit.add(r.id);out.push(r)}
  return out}
@@ -150,7 +245,7 @@ const alLbl=k=>(ALL.find(a=>a[0]===k)||[0,k.replace(/-/g,' ')])[1];
 function vE(){
  let res='';
  if(F.res){const f=F.res,lv=f.some(x=>x.lvl==='r')?'r':f.length?'y':'g';
-  res=`<div class="tl ${lv}"><b>${ICON[lv]}</b><div><b style="font-size:18px">${LBL[lv]}</b>${F.name?`<br>${esc(F.name)}`:''}</div></div>${f.map(x=>`<div class="fd ${x.lvl}"><b>${ICON[x.lvl]} ${x.title}</b><br>${x.detail}</div>`).join('')}${F.al.length?`<div class="card"><h3>Allergene laut Datenbank</h3><div class="row">${F.al.map(k=>`<span class="chip">${esc(alLbl(k))}</span>`).join('')}</div></div>`:''}<p class="mute"><small>Orientierungshilfe auf Basis der Zutatenangaben (Open Food Facts wird von Nutzern gepflegt). Keine medizinische Beratung und keine Garantie. Im Zweifel: Packung lesen, Hebamme oder Ärzt:in fragen.</small></p>`}
+  res=`<div class="tl ${lv}"><b>${ICON[lv]}</b><div style="flex:1"><b style="font-size:18px">${LBL[lv]}</b>${F.name?`<br>${esc(F.name)}`:''}</div>${F.img?`<img class="pimg" src="${esc(F.img)}" alt="Produktbild">`:''}</div>${f.map(x=>`<div class="fd ${x.lvl}"><b>${ICON[x.lvl]} ${x.title}</b><br>${x.detail}${x.amt?`<br><small>Menge: ${x.amt}</small>`:''}</div>`).join('')}${F.al.length?`<div class="card"><h3>Allergene laut Datenbank</h3><div class="row">${F.al.map(k=>`<span class="chip">${esc(alLbl(k))}</span>`).join('')}</div></div>`:''}<p class="mute"><small>Orientierungshilfe auf Basis der Zutatenangaben (Open Food Facts wird von Nutzern gepflegt). Keine medizinische Beratung und keine Garantie. Im Zweifel: Packung lesen, Hebamme oder Ärzt:in fragen.</small></p>`}
  return `<h1>Safe to Eat</h1>${res}<div class="card"><h2>Barcode</h2>${F.cam?'<video id="vid" playsinline muted autoplay style="width:100%;max-height:50vh;object-fit:cover;border-radius:16px;background:#000"></video><button class="btn s" data-a="camoff">Abbrechen</button>':'<button class="btn" data-a="cam">Mit Kamera scannen</button>'}
 <input inputmode="numeric" placeholder="oder Barcode-Nummer (EAN)" value="${esc(F.code)}" data-o="F" data-k="code" style="margin-top:12px"><button class="btn s" data-a="scan">Nachschlagen</button>${F.msg?`<p class="mute" style="margin-top:10px">${F.msg}</p>`:''}</div>
 <div class="card"><h2>Zutaten prüfen</h2><p class="mute">Füge die Zutatenliste oder den Produktnamen ein.</p><textarea rows="3" placeholder="z. B. Rohmilchkäse, Salami, Tonic Water …" data-o="F" data-k="txt">${esc(F.txt)}</textarea><button class="btn" data-a="check">Prüfen</button></div>
@@ -158,14 +253,14 @@ function vE(){
 }
 const strip=a=>(a||[]).map(t=>t.replace(/^[a-z]{2}:/,''));
 async function scan(){
- const code=F.code.replace(/\D/g,'');F.res=null;F.name='';F.al=[];
+ const code=F.code.replace(/\D/g,'');F.res=null;F.name='';F.al=[];F.img='';
  if(code.length<8||code.length>14){F.msg='Das ist keine gültige Barcode-Nummer.';return render()}
  F.msg='Suche …';render();
- try{const r=await fetch(`https://world.openfoodfacts.org/api/v2/product/${code}.json?fields=product_name,product_name_de,ingredients_text,ingredients_text_de,allergens_tags,traces_tags,categories_tags,labels_tags,additives_tags,ingredients_tags`);
+ try{const r=await fetch(`https://world.openfoodfacts.org/api/v2/product/${code}.json?fields=image_front_small_url,image_front_url,product_name,product_name_de,ingredients_text,ingredients_text_de,allergens_tags,traces_tags,categories_tags,labels_tags,additives_tags,ingredients_tags`);
   const p=(await r.json()).product;if(!p){F.msg='Produkt nicht gefunden. Füge die Zutaten unten von Hand ein.';return render()}
   const tags=a=>strip(a).map(t=>t.replace(/-/g,' ')).join(' '),nm=p.product_name_de||p.product_name||'',ing=p.ingredients_text_de||p.ingredients_text||'';
   const t=[nm,ing,tags(p.categories_tags),tags(p.labels_tags),tags(p.additives_tags),tags(p.ingredients_tags)].filter(Boolean).join(' ');
-  F.name=nm;F.al=strip(p.allergens_tags);F.res=assess(t);
+  F.name=nm;F.al=strip(p.allergens_tags);const im=p.image_front_small_url||p.image_front_url||'';F.img=/^https:\/\//.test(im)?im:'';F.res=assess(t);
   F.res.push(...F.al.filter(k=>S.myAll.includes(k)).map(k=>({lvl:'r',title:'Enthält '+alLbl(k),detail:'Das hast du als Allergen markiert.'})));
   F.res.push(...strip(p.traces_tags).filter(k=>S.myAll.includes(k)).map(k=>({lvl:'y',title:'Spuren von '+alLbl(k)+' möglich',detail:'Das hast du als Allergen markiert.'})));
   F.msg=ing?'':'Zu diesem Produkt fehlen Zutaten in der Datenbank. Lies die Packung.';
@@ -213,16 +308,26 @@ const A={
  addev(){const t=$('#et').value.trim(),d=$('#ed').value;if(!t||!d)return;S.ev.push({id:Date.now().toString(36),title:t,t:new Date(d).getTime()});put();render()},
  delev(v){S.ev=S.ev.filter(e=>e.id!==v);put();render()},
  wk(){S.wk[wkKey()]={c:W.c,h:W.h,w:W.w.trim()};W={c:3,h:3,w:''};O.W=W;put();render()},
- check(){F.name='';F.msg='';F.res=F.txt.trim()?assess(F.txt):null;if(!F.res)F.msg='Bitte gib Zutaten oder einen Produktnamen ein.';render()},
+ check(){F.name='';F.msg='';F.al=[];F.img='';F.res=F.txt.trim()?assess(F.txt):null;if(!F.res)F.msg='Bitte gib Zutaten oder einen Produktnamen ein.';render()},
  scan,exp,
+ role(v){S.role=v;if(v==='f')S.mode='f';else if(S.mode==='f'&&v==='m')S.mode='m';put();render()},
+ savecfg(){const g=id=>$('#'+id),v=g('due')&&g('due').value;if(v)S.due=v;if(g('goal'))S.goal=Math.max(500,Math.min(5000,+g('goal').value||2000));if(g('hgt'))S.h=g('hgt').value;if(g('w0'))S.w0=g('w0').value;put();render()},
+ dk(v){DR.k=v;render()},
+ drink(v){S.dr.push({t:Date.now(),ml:+v,k:DR.k});put();render()},
+ drinkc(){const v=Math.round(+$('#dm').value);if(v>0&&v<=2000){S.dr.push({t:Date.now(),ml:v,k:DR.k});put();render()}},
+ deldr(v){S.dr.splice(+v,1);put();render()},
+ wtadd(){const v=parseFloat(($('#wkg').value||'').replace(',','.'));if(!(v>30&&v<250))return;const ds=new Date().toDateString();S.wt=S.wt.filter(e=>new Date(e.t).toDateString()!==ds);S.wt.push({t:Date.now(),kg:v});S.wt.sort((a,b)=>a.t-b.t);UI.wo=true;put();render()},
+ delwt(v){S.wt.splice(+v,1);put();render()},
  cam(){F.cam=true;F.msg='';F.res=null;render()},camoff(){F.cam=false;render()},
  al(v){S.myAll=S.myAll.includes(v)?S.myAll.filter(x=>x!==v):[...S.myAll,v];put();render()}
 };
 document.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(b&&A[b.dataset.a])A[b.dataset.a](b.dataset.v,b)});
 document.addEventListener('change',e=>{const b=e.target,c=b.dataset.c;if(c==='tick'){S[b.dataset.s][b.dataset.v]=b.checked;put()}if(c==='share')D.share=b.checked;if(c==='imp'){const f=b.files[0];if(!f)return;f.text().then(t=>{try{const d=JSON.parse(t);if(!d||!Array.isArray(d.log))throw 0;if(!confirm('Aktuelle Daten durch das Backup ersetzen?'))return;S=Object.assign({},S,d);put();render()}catch(e){alert('Diese Datei ist kein Trio-Backup.')}})}});
 document.addEventListener('input',e=>{const b=e.target,o=b.dataset.o;if(!o)return;const v=b.type==='range'?+b.value:b.value;O[o][b.dataset.k]=v;if(b.type==='range')b.previousElementSibling.textContent=b.previousElementSibling.textContent.replace(/\(\d\)/,`(${v})`)});
-function render(){const y=scrollY;stopCam();document.documentElement.dataset.mode=S.mode;$('#app').innerHTML=({m:vM,f:vF,c:vC,e:vE})[S.mode]();
- document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===S.mode));scrollTo(0,y);if(F.cam&&S.mode==='e')startCam();else F.cam=false}
+function render(){const y=scrollY;stopCam();const tabs=S.role?TABS[S.role]:[];if(tabs.length&&!tabs.includes(S.mode))S.mode=tabs[0];
+ document.documentElement.dataset.mode=S.mode;$('#app').innerHTML=({m:vM,f:vF,c:vC,e:vE})[S.mode]();
+ $('nav').hidden=!S.role;document.querySelectorAll('nav button').forEach(b=>{b.hidden=!tabs.includes(b.dataset.v);b.classList.toggle('on',b.dataset.v===S.mode)});
+ scrollTo(0,y);if(F.cam&&S.mode==='e')startCam();else F.cam=false}
 if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
 render();
