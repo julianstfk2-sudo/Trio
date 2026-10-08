@@ -49,8 +49,12 @@ details.card summary{color:var(--ink);font-weight:600;padding:0}
 a.btn{text-align:center;line-height:48px;text-decoration:none;box-sizing:border-box;min-height:48px}
 .tool{display:block;width:100%;text-align:left;border:0;color:inherit;font:inherit;background:var(--card);border-radius:22px;padding:18px;margin:0 0 12px}.tool b{font-size:18px}.tool small{display:block;margin-top:4px}
 .tl.n{background:var(--mute)}.fd.n{border-color:var(--mute)}.big{font-size:44px;font-weight:600;font-family:"Iowan Old Style",Georgia,serif;text-align:center;margin:6px 0}
+.chip.no{background:transparent;color:var(--r);box-shadow:inset 0 0 0 2px var(--r)}
+#pp{display:none;white-space:pre-wrap;font:14pt/1.5 Georgia,serif;color:#000}
+@media print{body>*:not(#pp){display:none!important}#pp:not([hidden]){display:block!important}body{background:#fff}}
 </style></head><body>
 <div id="upd" hidden data-a="reload" style="position:fixed;top:calc(8px + env(safe-area-inset-top,0px));left:12px;right:12px;z-index:9;background:var(--acc);color:var(--on);padding:12px;border-radius:14px;text-align:center;font-weight:600">Neue Version bereit. Tippen zum Aktualisieren.</div>
+<div id="pp" hidden></div>
 <main id="app"></main>
 <nav>
 <button data-a="mode" data-v="m"><b>🌿</b>Mutter</button><button data-a="mode" data-v="f"><b>🤝</b>Vater</button>
@@ -60,9 +64,9 @@ a.btn{text-align:center;line-height:48px;text-decoration:none;box-sizing:border-
 // ---------- Zustand (nur lokal in diesem Browser) ----------
 const K='trio.v1';let S={};
 try{S=JSON.parse(localStorage.getItem(K))||{}}catch(e){}
-S=Object.assign({due:'',phase:'active',mode:'m',log:[],me:[],ev:[],wk:{},mid:{},plan:{},team:{},myAll:[],role:'',wt:[],dr:[],h:'',w0:'',goal:2000,tool:'',mv:[],mvRun:null,lb:[],lbRun:0,vs:{},q:[],nums:{heb:'',arzt:'',kl:''}},S);
+S=Object.assign({due:'',phase:'active',mode:'m',log:[],me:[],ev:[],wk:{},mid:{},plan:{},team:{},myAll:[],role:'',wt:[],dr:[],h:'',w0:'',goal:2000,sh:[],cd:[],gp:{o:{},nm:'',beg:'',note:'',extra:''},tool:'',mv:[],mvRun:null,lb:[],lbRun:0,vs:{},q:[],nums:{heb:'',arzt:'',kl:''}},S);
 const put=()=>{try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}};
-let D={mood:3,sy:[],note:'',share:false},P={mood:3,note:''},W={c:3,h:3,w:''},F={res:null,msg:'',code:'',txt:'',cam:false,al:[],name:'',img:''},DR={k:'w'},UI={};
+let D={mood:3,sy:[],note:'',share:false},P={mood:3,note:''},W={c:3,h:3,w:''},F={res:null,msg:'',code:'',txt:'',cam:false,al:[],name:'',img:'',view:null,edit:false},DR={k:'w',ml:250,f:false,ce:'🥤',cn:'',cc:0,cs:false},UI={};
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=t=>new Date(t).toLocaleString('de-DE',{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
@@ -114,10 +118,20 @@ ${full?(S.phase==='active'?'<button class="btn s" data-a="pause">Begleitung paus
 <button class="btn d" data-a="wipe">Alle Daten löschen</button><p class="mute" style="margin-top:12px"><small>Alles bleibt in diesem Browser. Es gibt keinen Server und kein Konto.</small></p></div></details>`}
 
 // ---------- Trinktagebuch ----------
-const DK={w:['💧','Wasser, Kräutertee',0],k:['☕','Kaffee',40],t:['🍵','Schwarz-/Grüntee',20],c:['🥤','Cola',10],e:['⚡','Energydrink',32],s:['🧃','Saft, Sonstiges',0]};
+const DK={w:['💧','Wasser, Kräutertee',0],k:['☕','Kaffee',40],t:['🍵','Schwarz-/Grüntee',20],c:['🥤','Cola',10],e:['⚡','Energydrink',32],s:['🧃','Saft, Limonade',0],q:['🍸','Tonic, Bitter Lemon',0],a:['🍺','Alkoholfreies Bier/Wein',0]};
+const DKW={k:['y','Kaffee enthält Koffein.','Ca. 80 bis 100 mg pro Tasse (200 ml). Richtwert: insgesamt bis ca. 200 mg Koffein pro Tag, also etwa 2 Tassen.'],t:['y','Tee enthält Koffein.','Ca. 40 bis 50 mg pro Tasse Schwarz- oder Grüntee. Das zählt zur Tagesmenge von ca. 200 mg Koffein.'],c:['y','Cola enthält Koffein und viel Zucker.','Ca. 35 mg Koffein und rund 35 g Zucker pro 330 ml. Besser nur selten und in kleinen Mengen.'],e:['r','Energydrinks besser meiden.','Ca. 80 mg Koffein pro 250-ml-Dose plus Zucker und Zusatzstoffe wie Taurin. Viele Fachstellen raten in der Schwangerschaft ab.'],s:['y','Saft und Limonade enthalten viel Zucker.','Rund 9 bis 11 g Zucker pro 100 ml. Besser als Schorle (1 Teil Saft, 2 bis 3 Teile Wasser) und nur in Maßen.'],q:['r','Chinin: besser meiden.','Tonic Water und Bitter Lemon enthalten Chinin. In der Schwangerschaft wird es häufig nicht empfohlen. Bei Fragen hilft deine Hebamme oder Ärzt:in.'],a:['y','Alkoholfrei heißt nicht immer 0,0.','Bis 0,5 % Vol. sind erlaubt, das sind etwa 2 g Alkohol pro 0,5 l. Viele Fachstellen raten trotzdem zu Zurückhaltung.']};
+const dkAll=()=>[...Object.entries(DK),...S.cd.map(c=>['x'+c.id,[c.e,c.n,c.caf||0]])];
+const cust=k=>k[0]==='x'?S.cd.find(c=>'x'+c.id===k):null;
+const dki=e=>e.n?[e.e||'🥤',e.n,e.c||0]:(DK[e.k]||['🥤','Getränk',0]);
+const dkwOf=k=>{if(DKW[k])return DKW[k];const c=cust(k);if(!c||!(c.caf>0||c.sug))return null;return['y',c.n+': Hinweis',(c.caf>0?'Enthält Koffein (ca. '+Math.round(c.caf*2.5)+' mg pro 250 ml). Richtwert: insgesamt bis ca. 200 mg Koffein pro Tag. ':'')+(c.sug?'Enthält viel Zucker, besser nur in Maßen.':'')]};
+const pushDrink=ml=>{const c=cust(DR.k),e={t:Date.now(),ml,k:DR.k};if(c){e.n=c.n;e.e=c.e;e.c=c.caf||0;e.s=!!c.sug}S.dr.push(e);put();render()};
+const CE=['🍵','🫖','🧃','🥛','🍋','🥤','☕','💧'];
+const cdForm=()=>`<div class="card" style="background:#8881;margin:8px 0 0"><h3>Neues Getränk</h3><input placeholder="Name, z. B. Kamillentee oder Saftschorle" maxlength="40" data-o="DR" data-k="cn" value="${esc(DR.cn||'')}"><div class="row">${CE.map(x=>`<button class="chip ${DR.ce===x?'on':''}" data-a="cde" data-v="${x}">${x}</button>`).join('')}</div><input type="number" inputmode="decimal" min="0" max="400" placeholder="Koffein in mg pro 100 ml (optional)" data-o="DR" data-k="cc" value="${DR.cc||''}"><label class="ck"><input type="checkbox" data-c="cds" ${DR.cs?'checked':''}><span>Enthält viel Zucker (zeigt einen Hinweis)</span></label><button class="btn" data-a="cdsave">Getränk speichern</button>
+${S.cd.length?`<h3 style="margin-top:16px">Meine Getränke</h3>${S.cd.map(c=>`<div class="ev"><span>${c.e} ${esc(c.n)}${c.caf>0?` <small>${c.caf} mg Koffein/100 ml</small>`:''}${c.sug?' <small>zuckerhaltig</small>':''}</span><button class="x" data-a="cddel" data-v="${c.id}" aria-label="Löschen">✕</button></div>`).join('')}`:''}</div>`;
+const okDrink=()=>{const w=dkwOf(DR.k);return!(w&&w[0]==='r')||confirm(w[1]+'\n\n'+w[2]+'\n\nTrotzdem eintragen?')};
 const today0=()=>{const d=new Date();d.setHours(0,0,0,0);return d.getTime()};
 function drinkCard(){
- const goal=+S.goal||2000,min=goal*.75,hi=goal*1.75,td=S.dr.map((e,i)=>[e,i]).filter(([e])=>e.t>=today0()),tot=td.reduce((a,[e])=>a+e.ml,0),caf=Math.round(td.reduce((a,[e])=>a+e.ml*DK[e.k][2]/100,0));
+ const goal=+S.goal||2000,min=goal*.75,hi=goal*1.75,td=S.dr.map((e,i)=>[e,i]).filter(([e])=>e.t>=today0()),tot=td.reduce((a,[e])=>a+e.ml,0),caf=Math.round(td.reduce((a,[e])=>a+e.ml*dki(e)[2]/100,0));
  const n=new Date(),h=n.getHours()+n.getMinutes()/60,exp=min*Math.min(1,Math.max(0,(h-7)/14)),left=Math.round(min-tot);
  let lv,msg;
  if(tot>hi){lv='y';msg='Sehr viel getrunken. Wenn das öfter vorkommt oder du dich unwohl fühlst, sprich mit Hebamme oder Ärzt:in.'}
@@ -128,10 +142,12 @@ function drinkCard(){
  const cl=caf>200?'r':caf>=150?'y':'g';
  return `<div class="card"><h2>Trinktagebuch</h2><div class="tl ${lv}"><b>${ICON[lv]}</b><div><b>${tot} ml</b> von ${goal} ml<br><small>${msg}</small></div></div><div class="bar"><i style="width:${Math.min(100,tot/goal*100)}%"></i></div>
 ${caf?`<div class="fd ${cl}"><b>${ICON[cl]} Koffein heute ca. ${caf} mg</b><br><small>Richtwert: insgesamt bis ca. 200 mg pro Tag.</small></div>`:''}
-<div class="row" style="margin-top:14px">${Object.entries(DK).map(([k,v])=>`<button class="chip ${DR.k===k?'on':''}" data-a="dk" data-v="${k}">${v[0]} ${v[1]}</button>`).join('')}</div>
-<div class="row">${[150,250,330,500].map(m=>`<button class="chip" data-a="drink" data-v="${m}">+${m} ml</button>`).join('')}</div>
-<div style="display:flex;gap:8px"><input id="dm" type="number" inputmode="numeric" placeholder="eigene Menge in ml" style="margin:0"><button class="btn" style="width:auto;margin:0;padding:0 20px" data-a="drinkc" aria-label="Hinzufügen">+</button></div>
-${td.length?`<div style="margin-top:10px">${td.slice().reverse().map(([e,i])=>`<div class="ev"><span>${DK[e.k][0]} ${e.ml} ml <small>${new Date(e.t).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})}</small></span><button class="x" data-a="deldr" data-v="${i}" aria-label="Löschen">✕</button></div>`).join('')}</div>`:''}
+<div class="row" style="margin-top:14px">${dkAll().map(([k,v])=>`<button class="chip ${DR.k===k?'on':''}" data-a="dk" data-v="${k}">${v[0]} ${v[1]}</button>`).join('')}</div>
+${(()=>{const w=dkwOf(DR.k);return w?`<div class="fd ${w[0]}"><b>${ICON[w[0]]} ${w[1]}</b><br><small>${w[2]}</small></div>`:'<p class="mute"><small>Wasser und ungesüßter Kräutertee sind die beste Wahl.</small></p>'})()}<div class="row">${[150,250,330,500].map(m=>`<button class="chip" data-a="drink" data-v="${m}">+${m} ml</button>`).join('')}</div>
+<div style="margin-top:14px"><p style="margin:0 0 4px">Menge: <b id="drl">${DR.ml} ml</b></p><input id="dr" type="range" min="50" max="1000" step="10" value="${Math.min(1000,DR.ml)}" data-o="DR" data-k="ml" aria-label="Trinkmenge in Millilitern">
+<div style="display:flex;gap:8px;align-items:center"><input id="dm" type="number" inputmode="numeric" min="1" max="2000" value="${DR.ml}" data-o="DR" data-k="ml" style="margin:0" aria-label="Menge in ml"><span class="mute">ml</span><button class="btn" style="width:auto;margin:0;padding:0 18px" data-a="drinkadd">Eintragen</button></div></div>
+<div class="row"><button class="chip" data-a="cdform">${DR.f?'– Eigenes Getränk schließen':'＋ Eigenes Getränk'}</button></div>${DR.f?cdForm():''}
+${td.length?`<div style="margin-top:10px">${td.slice().reverse().map(([e,i])=>`<div class="ev"><span>${dki(e)[0]} ${esc(dki(e)[1])}, ${e.ml} ml${DKW[e.k]||(e.n&&(e.c>0||e.s))?' ⚠️':''} <small>${new Date(e.t).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})}</small></span><button class="x" data-a="deldr" data-v="${i}" aria-label="Löschen">✕</button></div>`).join('')}</div>`:''}
 <p class="mute"><small>Richtwert: etwa 1,5 bis 2 Liter Getränke pro Tag, mehr bei Hitze, Sport oder Übelkeit mit Erbrechen. Gibt dir deine Ärztin oder Hebamme einen anderen Wert vor, gilt dieser. Koffeingehalte sind grobe Schätzungen.</small></p></div>`}
 
 // ---------- Gewicht ----------
@@ -282,14 +298,28 @@ const VS=[
 ['ms','34+0','34+6','Mutterschutz beginnt','Sechs Wochen vor dem errechneten Termin. Unterlagen für das Mutterschaftsgeld bereithalten.',''],
 ['bs','35+0','37+6','B-Streptokokken-Test','Abstrich, oft Selbstzahler. Frag deine Praxis.','o'],
 ['ct','40+0','42+0','Nach dem Termin: engmaschige Kontrollen','Bei Übertragung sind häufigere Kontrollen mit CTG üblich. Deine Praxis oder Klinik nennt die Termine.','']];
+const planRows=()=>VS.map(([id,a,b,t,d,k])=>({id,a,b,t,d,k,from:wkn(a),to:wkn(b)+1/7,done:!!S.vs[id]}));
+const pad=n=>String(n).padStart(2,'0');
+const icsDate=d=>d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate());
+const wDate=w=>{const b=new Date(S.due+'T00:00:00');return new Date(b.getFullYear(),b.getMonth(),b.getDate()-280+Math.round(w*7))};
+const icsEsc=t=>String(t).replace(/\\/g,'\\\\').replace(/;/g,'\\;').replace(/,/g,'\\,').replace(/\r?\n/g,'\\n');
+const fold=l=>{const enc=new TextEncoder();let out='',cur='',n=0;for(const ch of l){const b=enc.encode(ch).length;if(n+b>73){out+=cur+'\r\n ';cur='';n=1}cur+=ch;n+=b}return out+cur};
+function icsOf(rows){
+ const st=new Date().toISOString().replace(/[-:]/g,'').replace(/\.\d+/,''),L=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Trio//DE','CALSCALE:GREGORIAN','X-WR-CALNAME:Trio Vorsorge'];
+ for(const r of rows)L.push('BEGIN:VEVENT','UID:trio-'+r.id+'-'+S.due+'@trio.local','DTSTAMP:'+st,'DTSTART;VALUE=DATE:'+icsDate(wDate(r.from)),'DTEND;VALUE=DATE:'+icsDate(wDate(r.to)),'SUMMARY:'+icsEsc(r.t),'DESCRIPTION:'+icsEsc(r.d+'\nZeitfenster: SSW '+r.a+' bis '+r.b+'. Bitte den genauen Termin selbst vereinbaren.'),'BEGIN:VALARM','ACTION:DISPLAY','DESCRIPTION:'+icsEsc(r.t),'TRIGGER:PT9H','END:VALARM','END:VEVENT');
+ L.push('END:VCALENDAR');return L.map(fold).join('\r\n')+'\r\n'}
+async function shareFile(text,name,type){
+ const blob=new Blob([text],{type}),f=new File([blob],name,{type});
+ try{if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f]});return}}catch(e){if(e.name==='AbortError')return}
+ const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000)}
 function planView(){
  const p=PG();if(!p)return setup();
  const lmp=new Date(S.due).getTime()-280*864e5,dt=w=>new Date(lmp+w*7*864e5).toLocaleDateString('de-DE',{day:'numeric',month:'short'}),f=p.f;
- const rows=VS.map(([id,a,b,t,d,k])=>({id,a,b,t,d,k,from:wkn(a),to:wkn(b)+1/7,done:!!S.vs[id]}));
- const row=r=>`<label class="ck"><input type="checkbox" data-c="tick" data-s="vs" data-v="${r.id}" ${r.done?'checked':''}><span><b>${r.t}</b>${r.k?' <small>(optional)</small>':''}<br><small>SSW ${r.a} bis ${r.b}, ca. ${dt(r.from)} bis ${dt(r.to)}</small><br>${r.d}</span></label>`;
+ const rows=planRows();
+ const row=r=>`<div style="margin-bottom:10px"><label class="ck"><input type="checkbox" data-c="tick" data-s="vs" data-v="${r.id}" ${r.done?'checked':''}><span><b>${r.t}</b>${r.k?' <small>(optional)</small>':''}<br><small>SSW ${r.a} bis ${r.b}, ca. ${dt(r.from)} bis ${dt(r.to)}</small><br>${r.d}</span></label><div class="row" style="margin:0 0 0 34px"><button class="chip" data-a="ics" data-v="${r.id}">📅 Zum Kalender hinzufügen</button></div></div>`;
  const g=(t,l)=>l.length?`<div class="card"><h2>${t}</h2>${l.map(row).join('')}</div>`:'';
  const act=rows.filter(r=>!r.done&&f<r.to);
- return `<h1>Vorsorge-Fahrplan</h1><div class="card hint">Übliche Untersuchungen und Fristen nach den deutschen Mutterschafts-Richtlinien, soweit mir bekannt. Deine Praxis kann abweichen, und bei Risiken gibt es einen eigenen Plan. „Optional“ heißt freiwillig, oft als Selbstzahler.</div>
+ return `<h1>Vorsorge-Fahrplan</h1><div class="card hint">Übliche Untersuchungen und Fristen nach den deutschen Mutterschafts-Richtlinien, soweit mir bekannt. Deine Praxis kann abweichen, und bei Risiken gibt es einen eigenen Plan. „Optional“ heißt freiwillig, oft als Selbstzahler.</div><button class="btn s" data-a="icsall" style="margin:0 0 6px">📅 Alle offenen Termine als Kalenderdatei</button><p class="mute" style="margin:0 0 16px"><small>Die Datei öffnet sich über das Teilen-Menü: „In Dateien sichern“ wählen, dann die Datei antippen und „Alle hinzufügen“. Es sind Zeitfenster (ganztägig), keine festen Termine. Vereinbare den genauen Termin bei deiner Praxis.</small></p>
 ${g('Jetzt dran',act.filter(r=>f>=r.from))}${g('Als Nächstes (in den nächsten 6 Wochen)',act.filter(r=>r.from>f&&r.from-f<=6))}${g('Später',act.filter(r=>r.from-f>6))}${g('Erledigt oder vorbei',rows.filter(r=>r.done||f>=r.to))}`}
 
 // Fragenliste
@@ -302,12 +332,40 @@ function askView(){
 <div class="card"><h2>Vorschläge für das ${t}. Trimester</h2><p class="mute"><small>Tippen fügt die Frage für „${WH[w]}“ hinzu.</small></p>${SUG[t].map((x,i)=>`<div class="ev"><span>${x}</span><button class="x" data-a="qsug" data-v="${i}" aria-label="Hinzufügen">＋</button></div>`).join('')}</div>
 ${dn.length?`<div class="card"><h3>Gestellt</h3>${dn.map(row).join('')}</div>`:''}`}
 
+function GPd(){S.gp=Object.assign({o:{},nm:'',beg:'',note:'',extra:''},S.gp||{});if(!S.gp.o)S.gp.o={};return S.gp}
+const GP=[
+['bg','Begleitung',[['p1','Partner:in dabei'],['p2','Zweite Begleitperson'],['p3','Eigene Hebamme oder Doula'],['p4','Fotos oder Video erlaubt']]],
+['um','Umgebung',[['u1','Gedämpftes Licht'],['u2','Eigene Musik'],['u3','Möglichst wenig Personen im Raum'],['u4','Eigene Kleidung tragen'],['u5','Ruhe: nur das Nötigste ansprechen']]],
+['bw','Bewegung und Positionen',[['b1','Freie Bewegung und Positionswahl'],['b2','Gebärhocker oder Seil'],['b3','Vierfüßler oder Seitenlage'],['b4','Badewanne zur Entspannung'],['b5','Wassergeburt']]],
+['sm','Schmerzlinderung',[['s1','PDA (Periduralanästhesie)'],['s2','Lachgas'],['s3','Akupunktur'],['s4','TENS'],['s5','Wärme, Massage, Atmung'],['s6','Schmerzmittel nur auf meinen Wunsch']]],
+['ve','Geburtsverlauf',[['v1','Dammmassage oder Dammschutz'],['v2','Dammschnitt nur wenn medizinisch nötig'],['v3','Einleitung nur wenn medizinisch nötig'],['v4','Mobiles CTG, wenn möglich'],['v5','Blasensprengung nur nach Absprache']]],
+['na','Nach der Geburt',[['n1','Haut-an-Haut direkt nach der Geburt'],['n2','Nabelschnur auspulsieren lassen'],['n3','Partner:in durchtrennt die Nabelschnur'],['n4','Erstes Stillen in der ersten Stunde'],['n5','Untersuchungen des Babys erst nach dem Bonding'],['n6','Rooming-in: Mutter und Kind bleiben zusammen']]],
+['ks','Falls ein Kaiserschnitt nötig wird',[['k1','Partner:in im OP dabei'],['k2','Haut-an-Haut im OP'],['k3','Klarer Sichtschutz oder Blick auf die Geburt'],['k4','Musik im OP'],['k5','Jeden Schritt kurz erklären']]]];
+function gpText(){
+ const g=GPd(),L=['GEBURTSPLAN',''];
+ if(g.nm.trim())L.push('Name: '+g.nm.trim());
+ if(S.due)L.push('Errechneter Termin: '+new Date(S.due+'T00:00:00').toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'}));
+ if(g.beg.trim())L.push('Begleitung: '+g.beg.trim());
+ if(L.length>2)L.push('');
+ for(const [id,t,opts] of GP){const w=opts.filter(([k])=>g.o[k]==='w').map(o=>o[1]),n=opts.filter(([k])=>g.o[k]==='n').map(o=>o[1]);if(!w.length&&!n.length)continue;L.push(t.toUpperCase());w.forEach(x=>L.push('+ '+x));n.forEach(x=>L.push('– Lieber nicht: '+x));L.push('')}
+ if(g.note.trim())L.push('WEITERE WÜNSCHE',g.note.trim(),'');
+ if(g.extra.trim())L.push('WICHTIGE HINWEISE',g.extra.trim(),'');
+ L.push('Das sind unsere Wünsche. Wenn es medizinisch nötig wird, entscheiden wir gemeinsam mit dem Team.');
+ return L.join('\n')}
+function gpView(){
+ const g=GPd();
+ return `<h1>Geburtsplan</h1><div class="card hint">Tippe eine Option einmal für <b>✓ Wunsch</b>, zweimal für <b>✕ lieber nicht</b>, dreimal zum Zurücksetzen. Der Plan ist ein Wunsch, kein Anspruch: Wenn es medizinisch nötig wird, entscheidet ihr gemeinsam mit dem Team. Besprich ihn mit deiner Hebamme.</div>
+<div class="card"><h2>Angaben</h2><input placeholder="Dein Name" data-g="nm" value="${esc(g.nm)}"><input placeholder="Begleitperson(en), z. B. Name und Telefon" data-g="beg" value="${esc(g.beg)}"></div>
+${GP.map(([id,t,opts])=>`<div class="card"><h2>${t}</h2><div class="row">${opts.map(([k,l])=>{const st=g.o[k]||'';return`<button class="chip ${st==='w'?'on':st==='n'?'no':''}" data-a="gpo" data-v="${k}" aria-label="${l}, ${st==='w'?'Wunsch':st==='n'?'lieber nicht':'nicht ausgewählt'}">${st==='w'?'✓ ':st==='n'?'✕ ':''}${l}</button>`}).join('')}</div></div>`).join('')}
+<div class="card"><h2>Weitere Wünsche</h2><textarea rows="3" data-g="note" placeholder="Eigene Wünsche">${esc(g.note)}</textarea><h2 style="margin-top:12px">Wichtige Hinweise</h2><textarea rows="3" data-g="extra" placeholder="z. B. Allergien, Ängste, Vorerkrankungen">${esc(g.extra)}</textarea></div>
+<div class="card"><h2>Plan ausgeben</h2><button class="btn" data-a="gpshare">Teilen oder kopieren (Text)</button><button class="btn s" data-a="gptxt">Als Textdatei sichern</button><button class="btn s" data-a="gpprint">Drucken oder als PDF</button><button class="btn s" data-a="gpreset">Auswahl zurücksetzen</button></div>
+<div class="card"><h3>Vorschau</h3><pre style="white-space:pre-wrap;font:inherit;margin:0">${esc(gpText())}</pre></div>`}
 function vT(){
  if(!S.role)return welcome();
  const t=S.tool,back='<button class="chip" data-a="tool" data-v="" style="margin-bottom:12px">← Zurück</button>';
- const V={warn:warnView,move:moveView,labor:laborView,plan:planView,ask:askView}[t];
+ const V={warn:warnView,move:moveView,labor:laborView,plan:planView,ask:askView,gp:gpView}[t];
  if(V)return back+V();
- const T=[['warn','🚨','Warnsignale und Notruf','Wann du sofort anrufst, plus wichtige Nummern'],['move','👶','Kindsbewegungen zählen','Zähler mit Ampel und Verlauf'],['labor','⏱️','Wehen-Timer','Dauer und Abstand, mit Hinweis zur Klinik'],['plan','📅','Vorsorge-Fahrplan','Übliche Untersuchungen mit Zeitfenstern'],['ask','📝','Fragenliste','Fragen für Hebamme und Ärzt:in sammeln']];
+ const T=[['warn','🚨','Warnsignale und Notruf','Wann du sofort anrufst, plus wichtige Nummern'],['move','👶','Kindsbewegungen zählen','Zähler mit Ampel und Verlauf'],['labor','⏱️','Wehen-Timer','Dauer und Abstand, mit Hinweis zur Klinik'],['plan','📅','Vorsorge-Fahrplan','Übliche Untersuchungen mit Zeitfenstern'],['ask','📝','Fragenliste','Fragen für Hebamme und Ärzt:in sammeln'],['gp','📋','Geburtsplan','Wünsche ankreuzen und als Text oder PDF ausgeben']];
  return `<h1>Mehr</h1>${T.map(([k,e,a,b])=>`<button class="tool" data-a="tool" data-v="${k}"><span style="font-size:28px">${e}</span> <b>${a}</b><small>${b}</small></button>`).join('')}`}
 
 // ---------- Essen (Safe to Eat) ----------
@@ -349,28 +407,49 @@ function assess(txt){txt=txt.toLowerCase();const hit=new Set(),out=[];
 const ICON={g:'✓',y:'!',r:'✕'},LBL={g:'Nichts Auffälliges gefunden',y:'Mit Vorsicht',r:'Besser meiden'};
 const ALL=[['gluten','Gluten'],['crustaceans','Krebstiere'],['eggs','Eier'],['fish','Fisch'],['peanuts','Erdnüsse'],['soybeans','Soja'],['milk','Milch'],['nuts','Schalenfrüchte'],['celery','Sellerie'],['mustard','Senf'],['sesame-seeds','Sesam'],['sulphur-dioxide-and-sulphites','Sulfite'],['lupin','Lupine'],['molluscs','Weichtiere']];
 const alLbl=k=>(ALL.find(a=>a[0]===k)||[0,k.replace(/-/g,' ')])[1];
-function vE(){
- let res='';
- if(F.res){const f=F.res,lv=f.some(x=>x.lvl==='r')?'r':f.length?'y':'g';
-  res=`<div class="tl ${lv}"><b>${ICON[lv]}</b><div style="flex:1"><b style="font-size:18px">${LBL[lv]}</b>${F.name?`<br>${esc(F.name)}`:''}</div>${F.img?`<img class="pimg" src="${esc(F.img)}" alt="Produktbild">`:''}</div>${f.map(x=>`<div class="fd ${x.lvl}"><b>${ICON[x.lvl]} ${x.title}</b><br>${x.detail}${x.amt?`<br><small>Menge: ${x.amt}</small>`:''}</div>`).join('')}${F.al.length?`<div class="card"><h3>Allergene laut Datenbank</h3><div class="row">${F.al.map(k=>`<span class="chip">${esc(alLbl(k))}</span>`).join('')}</div></div>`:''}<p class="mute"><small>Orientierungshilfe auf Basis der Zutatenangaben (Open Food Facts wird von Nutzern gepflegt). Keine medizinische Beratung und keine Garantie. Im Zweifel: Packung lesen, Hebamme oder Ärzt:in fragen.</small></p>`}
- return `<h1>Safe to Eat</h1>${res}<div class="card"><h2>Barcode</h2>${F.cam?'<video id="vid" playsinline muted autoplay style="width:100%;max-height:50vh;object-fit:cover;border-radius:16px;background:#000"></video><button class="btn s" data-a="camoff">Abbrechen</button>':'<button class="btn" data-a="cam">Mit Kamera scannen</button>'}
-<input inputmode="numeric" placeholder="oder Barcode-Nummer (EAN)" value="${esc(F.code)}" data-o="F" data-k="code" style="margin-top:12px"><button class="btn s" data-a="scan">Nachschlagen</button>${F.msg?`<p class="mute" style="margin-top:10px">${F.msg}</p>`:''}</div>
-<div class="card"><h2>Zutaten prüfen</h2><p class="mute">Füge die Zutatenliste oder den Produktnamen ein.</p><textarea rows="3" placeholder="z. B. Rohmilchkäse, Salami, Tonic Water …" data-o="F" data-k="txt">${esc(F.txt)}</textarea><button class="btn" data-a="check">Prüfen</button></div>
-<details><summary>Meine Allergene</summary><div class="card"><div class="row">${ALL.map(([k,l])=>`<button class="chip ${S.myAll.includes(k)?'on':''}" data-a="al" data-v="${k}">${l}</button>`).join('')}</div></div></details>`;
-}
+const ALK=[['gluten','weizen|dinkel|roggen|gerste|hafer|gluten|kamut|grünkern|malz'],['crustaceans','krebs|garnele|shrimp|krabbe|hummer|languste|scampi'],['eggs','eier|ei(?![\p{L}])|eigelb|eiweiß|eipulver|vollei|egg'],['fish','fisch|lachs|thunfisch|kabeljau|hering|makrele|sardine|forelle|anchovis|surimi'],['peanuts','erdnuss|erdnüsse|erdnuß|peanut'],['soybeans','soja|soy'],['milk','milch|molke|laktose|sahne|joghurt|quark|käse|butter|kasein|casein|milk'],['nuts','haselnuss|haselnüsse|walnuss|walnüsse|cashew|pistazie|mandel|pekan|macadamia|paranuss|paranüsse|schalenfrüchte'],['celery','sellerie|celery'],['mustard','senf|mustard'],['sesame-seeds','sesam'],['sulphur-dioxide-and-sulphites','sulfit|schwefeldioxid|sulphite|e ?22[0-8]'],['lupin','lupine'],['molluscs','muschel|schnecke|tintenfisch|auster|weichtier|mollusc']].map(([k,p])=>[k,new RegExp(L+'(?:'+p+')','iu')]);
+const detectAl=t=>ALK.filter(([k,r])=>r.test(t)).map(a=>a[0]);
 const strip=a=>(a||[]).map(t=>t.replace(/^[a-z]{2}:/,''));
+const DISC='Orientierungshilfe auf Basis der Zutatenangaben (Open Food Facts wird von Nutzern gepflegt, bei eigener Eingabe zählt, was du eingibst). Keine medizinische Beratung und keine Garantie. Im Zweifel: Packung lesen, Hebamme oder Ärzt:in fragen.';
+// Bewertung eines Eintrags: gleiche Regeln für Scan und Texteingabe
+function evalEntry(o){
+ const t=[o.nm,o.ing,o.ctx].filter(Boolean).join(' '),f=assess(t).map(r=>({id:r.id,lvl:r.lvl,title:r.title,detail:r.detail,amt:r.amt})),al=[...new Set([...(o.dbal||[]),...detectAl(t.toLowerCase())])];
+ f.push(...al.filter(k=>S.myAll.includes(k)).map(k=>({id:'al-'+k,lvl:'r',title:'Enthält '+alLbl(k),detail:'Das hast du als Allergen markiert.',amt:''})));
+ f.push(...(o.tr||[]).filter(k=>S.myAll.includes(k)&&!al.includes(k)).map(k=>({id:'tr-'+k,lvl:'y',title:'Spuren von '+alLbl(k)+' möglich',detail:'Das hast du als Allergen markiert.',amt:''})));
+ if(!f.length&&!(o.ing||'').trim())f.push({id:'nodata',lvl:'y',title:'Keine Zutaten hinterlegt',detail:'Zu diesem Produkt fehlen Angaben in der Datenbank. Lies die Packung oder trage die Zutaten über „Bearbeiten“ ein.',amt:''});
+ f.sort((a,b)=>'gyr'.indexOf(b.lvl)-'gyr'.indexOf(a.lvl));
+ return{res:f,al,lv:f.some(x=>x.lvl==='r')?'r':f.length?'y':'g'}}
+function addHist(o){
+ const e=Object.assign({id:Date.now().toString(36)+S.sh.length,t:Date.now(),src:'text',code:'',nm:'',img:'',ing:'',ctx:'',dbal:[],tr:[]},o);Object.assign(e,evalEntry(e));
+ const d=S.sh[0];if(d&&d.src===e.src&&d.code===e.code&&d.nm===e.nm&&d.ing===e.ing&&e.t-d.t<6e4){F.view=d.id;return d}
+ S.sh.unshift(e);S.sh=S.sh.slice(0,200);F.view=e.id;put();return e}
+function resCard(e){
+ const lv=e.lv,al=e.al||[];
+ return `<div class="tl ${lv}"><b>${ICON[lv]}</b><div style="flex:1"><b style="font-size:18px">${LBL[lv]}</b>${e.nm?`<br>${esc(e.nm)}`:''}<br><small>${e.src==='scan'?'📷 Gescannt':'⌨️ Eigene Eingabe'} · ${fmt(e.t)}${e.edited?' · bearbeitet':''}</small></div>${e.img?`<img class="pimg" src="${esc(e.img)}" alt="Produktbild">`:''}</div>
+${e.res.map(x=>`<div class="fd ${x.lvl}"><b>${ICON[x.lvl]} ${x.title}</b><br>${x.detail}${x.amt?`<br><small>Menge: ${x.amt}</small>`:''}</div>`).join('')}
+${al.length?`<div class="card"><h3>Allergene laut Zutaten</h3><div class="row">${al.map(k=>`<span class="chip">${esc(alLbl(k))}</span>`).join('')}</div></div>`:''}
+${e.ing&&e.ing!==e.nm?`<details class="card"><summary>Zutaten</summary><p style="margin-top:10px">${esc(e.ing)}</p></details>`:''}
+<p class="mute"><small>${DISC}</small></p>
+<div class="row"><button class="chip" data-a="hedit">✏️ Bearbeiten</button><button class="chip" data-a="hdel" data-v="${e.id}">🗑️ Löschen</button><button class="chip on" data-a="hback">Fertig</button></div>`}
+const editCard=e=>`<div class="card"><h2>Eintrag bearbeiten</h2><p class="mute"><small>Korrigiere Namen oder Zutaten, Trio bewertet neu. Das hilft, wenn die Datenbank falsche oder fehlende Angaben hat.</small></p><input id="hn" placeholder="Name" value="${esc(e.nm)}"><textarea id="hi" rows="5" placeholder="Zutatenliste">${esc(e.ing)}</textarea><button class="btn" data-a="hsave">Speichern und neu bewerten</button><button class="btn s" data-a="hcancel">Abbrechen</button></div>`;
+const histCard=()=>S.sh.length?`<div class="card"><h2>Verlauf</h2>${S.sh.slice(0,30).map(e=>`<div class="ev"><button data-a="hview" data-v="${e.id}" style="flex:1;display:flex;gap:10px;align-items:center;border:0;background:none;color:inherit;font:inherit;text-align:left;padding:4px 0"><span style="font-size:20px;color:var(--${e.lv})">${ICON[e.lv]}</span><span style="flex:1"><b>${esc(e.nm||'Ohne Namen')}</b><br><small>${e.src==='scan'?'📷':'⌨️'} ${fmt(e.t)}${e.edited?' · bearbeitet':''}</small></span></button><button class="x" data-a="hdel" data-v="${e.id}" aria-label="Löschen">✕</button></div>`).join('')}${S.sh.length>30?`<p class="mute"><small>Angezeigt werden die letzten 30 von ${S.sh.length} Einträgen.</small></p>`:''}<button class="btn s" data-a="hclear">Verlauf löschen</button></div>`:'';
+function vE(){
+ const cur=F.view&&S.sh.find(e=>e.id===F.view);
+ if(cur)return `<h1>Safe to Eat</h1>`+(F.edit?editCard(cur):resCard(cur));
+ return `<h1>Safe to Eat</h1><div class="card"><h2>Barcode</h2>${F.cam?'<video id="vid" playsinline muted autoplay style="width:100%;max-height:50vh;object-fit:cover;border-radius:16px;background:#000"></video><button class="btn s" data-a="camoff">Abbrechen</button>':'<button class="btn" data-a="cam">Mit Kamera scannen</button>'}
+<input inputmode="numeric" placeholder="oder Barcode-Nummer (EAN)" value="${esc(F.code)}" data-o="F" data-k="code" style="margin-top:12px"><button class="btn s" data-a="scan">Nachschlagen</button>${F.msg?`<p class="mute" style="margin-top:10px">${F.msg}</p>`:''}</div>
+<div class="card"><h2>Zutaten prüfen</h2><p class="mute">Füge die Zutatenliste oder den Produktnamen ein. Du bekommst dieselbe Auswertung wie beim Scannen.</p><textarea rows="3" placeholder="z. B. Rohmilchkäse, Salami, Tonic Water …" data-o="F" data-k="txt">${esc(F.txt)}</textarea><button class="btn" data-a="check">Prüfen</button></div>
+${histCard()}<details><summary>Meine Allergene</summary><div class="card"><div class="row">${ALL.map(([k,l])=>`<button class="chip ${S.myAll.includes(k)?'on':''}" data-a="al" data-v="${k}">${l}</button>`).join('')}</div></div></details>`;
+}
 async function scan(){
- const code=F.code.replace(/\D/g,'');F.res=null;F.name='';F.al=[];F.img='';
+ const code=F.code.replace(/\D/g,'');F.view=null;F.edit=false;
  if(code.length<8||code.length>14){F.msg='Das ist keine gültige Barcode-Nummer.';return render()}
  F.msg='Suche …';render();
  try{const r=await fetch(`https://world.openfoodfacts.org/api/v2/product/${code}.json?fields=image_front_small_url,image_front_url,product_name,product_name_de,ingredients_text,ingredients_text_de,allergens_tags,traces_tags,categories_tags,labels_tags,additives_tags,ingredients_tags`);
   const p=(await r.json()).product;if(!p){F.msg='Produkt nicht gefunden. Füge die Zutaten unten von Hand ein.';return render()}
-  const tags=a=>strip(a).map(t=>t.replace(/-/g,' ')).join(' '),nm=p.product_name_de||p.product_name||'',ing=p.ingredients_text_de||p.ingredients_text||'';
-  const t=[nm,ing,tags(p.categories_tags),tags(p.labels_tags),tags(p.additives_tags),tags(p.ingredients_tags)].filter(Boolean).join(' ');
-  F.name=nm;F.al=strip(p.allergens_tags);const im=p.image_front_small_url||p.image_front_url||'';F.img=/^https:\/\//.test(im)?im:'';F.res=assess(t);
-  F.res.push(...F.al.filter(k=>S.myAll.includes(k)).map(k=>({lvl:'r',title:'Enthält '+alLbl(k),detail:'Das hast du als Allergen markiert.'})));
-  F.res.push(...strip(p.traces_tags).filter(k=>S.myAll.includes(k)).map(k=>({lvl:'y',title:'Spuren von '+alLbl(k)+' möglich',detail:'Das hast du als Allergen markiert.'})));
-  F.msg=ing?'':'Zu diesem Produkt fehlen Zutaten in der Datenbank. Lies die Packung.';
+  const tags=a=>strip(a).map(t=>t.replace(/-/g,' ')).join(' '),im=p.image_front_small_url||p.image_front_url||'';
+  addHist({src:'scan',code,nm:p.product_name_de||p.product_name||'',img:/^https:\/\//.test(im)?im:'',ing:p.ingredients_text_de||p.ingredients_text||'',ctx:[tags(p.categories_tags),tags(p.labels_tags),tags(p.additives_tags),tags(p.ingredients_tags)].filter(Boolean).join(' '),dbal:strip(p.allergens_tags),tr:strip(p.traces_tags)});
+  F.msg='';
  }catch(e){F.msg='Keine Verbindung zur Produktdatenbank. Prüfe dein Internet oder füge die Zutaten von Hand ein.'}
  render();
 }
@@ -400,7 +479,7 @@ async function exp(){
 }
 
 // ---------- Aktionen ----------
-const O={D,P,W,F};
+const O={D,P,W,F,DR};
 const A={
  mode(v){S.mode=v;put();render();scrollTo(0,0)},
  mood(v,b){const o=b.dataset.o;(o==='D'?D:P).mood=+v;render()},
@@ -412,11 +491,22 @@ const A={
  pause(){S.phase='paused';put();render()},resume(){S.phase='active';put();render()},
  loss(){if(confirm('Zähler und Vergleiche werden ausgeschaltet. Fortfahren?')){S.phase='loss';put();render()}},
  wipe(){if(confirm('Wirklich alle Daten in diesem Browser löschen?')){try{localStorage.removeItem(K)}catch(e){}location.reload()}},
- addev(){const t=$('#et').value.trim(),d=$('#ed').value;if(!t||!d)return;S.ev.push({id:Date.now().toString(36),title:t,t:new Date(d).getTime()});put();render()},
+ addev(){const t=$('#et').value.trim(),d=$('#ed').value;if(!t||!d)return;S.ev.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),title:t,t:new Date(d).getTime()});put();render()},
  delev(v){S.ev=S.ev.filter(e=>e.id!==v);put();render()},
  wk(){S.wk[wkKey()]={c:W.c,h:W.h,w:W.w.trim()};W={c:3,h:3,w:''};O.W=W;put();render()},
- check(){F.name='';F.msg='';F.al=[];F.img='';F.res=F.txt.trim()?assess(F.txt):null;if(!F.res)F.msg='Bitte gib Zutaten oder einen Produktnamen ein.';render()},
+ check(){const t=F.txt.trim();F.edit=false;if(!t){F.msg='Bitte gib Zutaten oder einen Produktnamen ein.';return render()}F.msg='';addHist({src:'text',nm:(t.length<=40&&!/[,;\n]/.test(t))?t:'Zutatenliste: '+t.slice(0,28).trim()+'…',ing:t});render()},
+ hview(v){F.view=v;F.edit=false;render();scrollTo(0,0)},hedit(){F.edit=true;render()},hcancel(){F.edit=false;render()},hback(){F.view=null;F.edit=false;render()},
+ hsave(){const e=S.sh.find(x=>x.id===F.view);if(!e)return;e.nm=$('#hn').value.trim();e.ing=$('#hi').value.trim();Object.assign(e,evalEntry(e));e.edited=true;F.edit=false;put();render()},
+ hdel(v){if(!confirm('Diesen Eintrag löschen?'))return;S.sh=S.sh.filter(x=>x.id!==v);if(F.view===v){F.view=null;F.edit=false}put();render()},
+ hclear(){if(confirm('Den ganzen Verlauf löschen?')){S.sh=[];F.view=null;F.edit=false;put();render()}},
  scan,exp,
+ ics(v){const r=planRows().find(x=>x.id===v);if(r&&S.due)shareFile(icsOf([r]),'trio-'+r.id+'.ics','text/calendar')},
+ icsall(){const p=PG();if(!p)return;const rows=planRows().filter(r=>!r.done&&p.f<r.to);if(rows.length)shareFile(icsOf(rows),'trio-vorsorge.ics','text/calendar')},
+ gpo(v){const o=GPd().o;o[v]=o[v]==='w'?'n':o[v]==='n'?'':'w';if(!o[v])delete o[v];put();render()},
+ gpshare(){const t=gpText();if(navigator.share)navigator.share({title:'Geburtsplan',text:t}).catch(()=>{});else if(navigator.clipboard)navigator.clipboard.writeText(t).then(()=>alert('Kopiert.'))},
+ gptxt(){shareFile(gpText(),'geburtsplan.txt','text/plain')},
+ gpprint(){const q=$('#pp');q.textContent=gpText();q.hidden=false;window.onafterprint=()=>{q.hidden=true};window.print()},
+ gpreset(){if(confirm('Alle Auswahlen im Geburtsplan zurücksetzen?')){GPd().o={};put();render()}},
  reload(){location.reload()},upd(){checkUpdate(true)},
  tool(v){S.tool=v;put();render();scrollTo(0,0)},
  warnlink(){S.mode='t';S.tool='warn';put();render();scrollTo(0,0)},
@@ -435,17 +525,23 @@ const A={
  role(v){S.role=v;if(v==='f')S.mode='f';else if(S.mode==='f'&&v==='m')S.mode='m';put();render()},
  savecfg(){const g=id=>$('#'+id),v=g('due')&&g('due').value;if(v)S.due=v;if(g('goal'))S.goal=Math.max(500,Math.min(5000,+g('goal').value||2000));if(g('hgt'))S.h=g('hgt').value;if(g('w0'))S.w0=g('w0').value;put();render()},
  dk(v){DR.k=v;render()},
- drink(v){S.dr.push({t:Date.now(),ml:+v,k:DR.k});put();render()},
- drinkc(){const v=Math.round(+$('#dm').value);if(v>0&&v<=2000){S.dr.push({t:Date.now(),ml:v,k:DR.k});put();render()}},
+ drink(v){if(!okDrink())return;pushDrink(+v)},
+ drinkc(){A.drinkadd()},
+ drinkadd(){const v=Math.round(+DR.ml);if(!(v>=1&&v<=2000)){alert('Bitte gib eine Menge zwischen 1 und 2000 ml ein.');return}if(okDrink())pushDrink(v)},
+ cdform(){DR.f=!DR.f;render()},cde(v){DR.ce=v;render()},
+ cdsave(){const n=(DR.cn||'').trim();if(!n){alert('Bitte gib einen Namen ein.');return}const c={id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),n:n.slice(0,40),e:DR.ce||'🥤',caf:Math.max(0,Math.min(400,+DR.cc||0)),sug:!!DR.cs};S.cd.push(c);DR.k='x'+c.id;DR.cn='';DR.cc=0;DR.cs=false;DR.f=false;put();render()},
+ cddel(v){if(!confirm('Dieses Getränk löschen? Bisherige Einträge bleiben erhalten.'))return;S.cd=S.cd.filter(c=>c.id!==v);if(DR.k==='x'+v)DR.k='w';put();render()},
  deldr(v){S.dr.splice(+v,1);put();render()},
  wtadd(){const v=parseFloat(($('#wkg').value||'').replace(',','.'));if(!(v>30&&v<250))return;const ds=new Date().toDateString();S.wt=S.wt.filter(e=>new Date(e.t).toDateString()!==ds);S.wt.push({t:Date.now(),kg:v});S.wt.sort((a,b)=>a.t-b.t);UI.wo=true;put();render()},
  delwt(v){S.wt.splice(+v,1);put();render()},
- cam(){F.cam=true;F.msg='';F.res=null;render()},camoff(){F.cam=false;render()},
+ cam(){F.cam=true;F.msg='';F.view=null;render()},camoff(){F.cam=false;render()},
  al(v){S.myAll=S.myAll.includes(v)?S.myAll.filter(x=>x!==v):[...S.myAll,v];put();render()}
 };
 document.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(b&&A[b.dataset.a])A[b.dataset.a](b.dataset.v,b)});
-document.addEventListener('change',e=>{const b=e.target,c=b.dataset.c;if(c==='tick'){S[b.dataset.s][b.dataset.v]=b.checked;put()}if(c==='share')D.share=b.checked;if(c==='qtick'){const q=S.q.find(x=>x.id===b.dataset.v);if(q){q.done=b.checked;put();render()}}if(c==='imp'){const f=b.files[0];if(!f)return;f.text().then(t=>{try{const d=JSON.parse(t);if(!d||!Array.isArray(d.log))throw 0;if(!confirm('Aktuelle Daten durch das Backup ersetzen?'))return;S=Object.assign({},S,d);put();render()}catch(e){alert('Diese Datei ist kein Trio-Backup.')}})}});
-document.addEventListener('input',e=>{const b=e.target,o=b.dataset.o;if(!o)return;const v=b.type==='range'?+b.value:b.value;O[o][b.dataset.k]=v;if(b.type==='range')b.previousElementSibling.textContent=b.previousElementSibling.textContent.replace(/\(\d\)/,`(${v})`)});
+document.addEventListener('change',e=>{const b=e.target,c=b.dataset.c;if(c==='tick'){S[b.dataset.s][b.dataset.v]=b.checked;put()}if(c==='share')D.share=b.checked;if(c==='cds')DR.cs=b.checked;if(c==='qtick'){const q=S.q.find(x=>x.id===b.dataset.v);if(q){q.done=b.checked;put();render()}}if(c==='imp'){const f=b.files[0];if(!f)return;f.text().then(t=>{try{const d=JSON.parse(t);if(!d||!Array.isArray(d.log))throw 0;if(!confirm('Aktuelle Daten durch das Backup ersetzen?'))return;S=Object.assign({},S,d);put();render()}catch(e){alert('Diese Datei ist kein Trio-Backup.')}})}});
+document.addEventListener('input',e=>{const b=e.target,o=b.dataset.o;if(b.dataset.g){GPd()[b.dataset.g]=b.value;put();return}if(!o)return;const v=(b.type==='range'||b.type==='number')?+b.value:b.value;O[o][b.dataset.k]=v;
+ if(o==='DR'&&b.dataset.k==='ml'){const r=$('#dr'),n=$('#dm'),l=$('#drl');if(r&&b!==r)r.value=Math.min(1000,v);if(n&&b!==n)n.value=v;if(l)l.textContent=v+' ml'}
+ else if(b.type==='range'&&b.previousElementSibling)b.previousElementSibling.textContent=b.previousElementSibling.textContent.replace(/\(\d\)/,`(${v})`)});
 function render(){const y=scrollY;stopCam();const tabs=S.role?TABS[S.role]:[];if(tabs.length&&!tabs.includes(S.mode))S.mode=tabs[0];
  document.documentElement.dataset.mode=S.mode;{let h=({m:vM,f:vF,c:vC,e:vE,t:vT})[S.mode]();if(S.role&&S.mode!=='t')h=WL+h;$('#app').innerHTML=h}
  $('nav').hidden=!S.role;document.querySelectorAll('nav button').forEach(b=>{b.hidden=!tabs.includes(b.dataset.v);b.classList.toggle('on',b.dataset.v===S.mode)});
