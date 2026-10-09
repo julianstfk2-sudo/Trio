@@ -52,6 +52,11 @@ a.btn{text-align:center;line-height:48px;text-decoration:none;box-sizing:border-
 .chip.no{background:transparent;color:var(--r);box-shadow:inset 0 0 0 2px var(--r)}
 #pp{display:none;white-space:pre-wrap;font:14pt/1.5 Georgia,serif;color:#000}
 @media print{body>*:not(#pp){display:none!important}#pp:not([hidden]){display:block!important}body{background:#fff}}
+main{zoom:var(--z,1)}
+html[data-dens=c] .card{padding:12px;margin-bottom:10px;border-radius:16px}
+html[data-dens=c] main{padding-top:12px}
+html[data-dens=l] .card{padding:24px;margin-bottom:24px}
+html[data-dens=l] main{padding-top:28px}
 </style></head><body>
 <div id="upd" hidden data-a="reload" style="position:fixed;top:calc(8px + env(safe-area-inset-top,0px));left:12px;right:12px;z-index:9;background:var(--acc);color:var(--on);padding:12px;border-radius:14px;text-align:center;font-weight:600">Neue Version bereit. Tippen zum Aktualisieren.</div>
 <div id="pp" hidden></div>
@@ -64,7 +69,7 @@ a.btn{text-align:center;line-height:48px;text-decoration:none;box-sizing:border-
 // ---------- Zustand (nur lokal in diesem Browser) ----------
 const K='trio.v1';let S={};
 try{S=JSON.parse(localStorage.getItem(K))||{}}catch(e){}
-S=Object.assign({due:'',phase:'active',mode:'m',log:[],me:[],ev:[],wk:{},mid:{},plan:{},team:{},myAll:[],role:'',wt:[],dr:[],h:'',w0:'',goal:2000,sh:[],cd:[],gp:{o:{},nm:'',beg:'',note:'',extra:''},tool:'',mv:[],mvRun:null,lb:[],lbRun:0,vs:{},q:[],nums:{heb:'',arzt:'',kl:''}},S);
+S=Object.assign({due:'',phase:'active',mode:'m',log:[],me:[],ev:[],wk:{},mid:{},plan:{},team:{},myAll:[],role:'',wt:[],dr:[],h:'',w0:'',goal:2000,sh:[],lay:{},cd:[],gp:{o:{},nm:'',beg:'',note:'',extra:''},tool:'',mv:[],mvRun:null,lb:[],lbRun:0,vs:{},q:[],nums:{heb:'',arzt:'',kl:''}},S);
 const put=()=>{try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}};
 let D={mood:3,sy:[],note:'',share:false},P={mood:3,note:''},W={c:3,h:3,w:''},F={res:null,msg:'',code:'',txt:'',cam:false,al:[],name:'',img:'',view:null,edit:false},DR={k:'w',ml:250,f:false,ce:'🥤',cn:'',cc:0,cs:false},UI={};
 const $=s=>document.querySelector(s);
@@ -109,7 +114,7 @@ const setup=()=>`<div class="card"><h2>Errechneter Geburtstermin</h2><p class="m
 const TABS={m:['m','c','t','e'],f:['f','c','t','e'],c:['m','f','c','t','e']};
 
 // ---------- Einstellungen ----------
-function settings(full){return `<details><summary>Einstellungen</summary><div class="card"><p>Ich nutze Trio als</p><div class="row">${[['m','Mutter'],['f','Vater/Partner:in'],['c','Paar']].map(([k,l])=>`<button class="chip ${S.role===k?'on':''}" data-a="role" data-v="${k}">${l}</button>`).join('')}</div>
+function settings(full){return `<details><summary>Einstellungen</summary><div class="card"><button class="btn s" data-a="laylink" style="margin:0 0 14px">🎛️ Layout &amp; Funktionen</button><p>Ich nutze Trio als</p><div class="row">${[['m','Mutter'],['f','Vater/Partner:in'],['c','Paar']].map(([k,l])=>`<button class="chip ${S.role===k?'on':''}" data-a="role" data-v="${k}">${l}</button>`).join('')}</div>
 <p>Errechneter Termin</p><input type="date" id="due" value="${esc(S.due)}">
 ${full?`<p>Trinkziel pro Tag (ml)</p><input type="number" id="goal" inputmode="numeric" value="${S.goal||2000}"><p>Für den Gewichts-Orientierungsbereich (optional)</p><input type="number" id="hgt" inputmode="numeric" placeholder="Größe in cm" value="${esc(S.h)}"><input type="number" id="w0" inputmode="decimal" step="0.1" placeholder="Gewicht vor der Schwangerschaft in kg" value="${esc(S.w0)}">`:''}
 <button class="btn" data-a="savecfg">Speichern</button>
@@ -183,14 +188,16 @@ function vM(){
  if(!S.due)return setup();
  const p=PG(),t=tri(p);
  const recent=S.log.map((e,i)=>[e,i]).slice(-5).reverse().map(([e,i])=>`<div class="ev"><span><small>${fmt(e.t)}</small><br>${MOOD[e.mood-1][0]} ${MOOD[e.mood-1][1]}${e.sy.length?' · '+e.sy.map(k=>SY.find(s=>s[0]===k)[1]).join(', '):''}${e.note?'<br>'+esc(e.note):''}</span><button class="x" data-a="del" data-v="${i}" aria-label="Löschen">✕</button></div>`).join('');
- return `${hero(p)}${tipsCard('m',t)}
-<div class="card"><h2>Wie fühlst du dich gerade?</h2>${moods('D',D.mood)}
+ return cards('m',[
+ ['m_hero',hero(p)],['m_tips',tipsCard('m',t)],
+ ['m_checkin',`<div class="card"><h2>Wie fühlst du dich gerade?</h2>${moods('D',D.mood)}
 <div class="row">${SY.map(([k,l])=>`<button class="chip ${D.sy.includes(k)?'on':''}" data-a="sy" data-v="${k}">${l}</button>`).join('')}</div>
 <textarea rows="3" placeholder="Was möchtest du festhalten? (optional)" data-o="D" data-k="note">${esc(D.note)}</textarea>
 <label class="ck"><input type="checkbox" data-c="share" ${D.share?'checked':''}><span>Als Hinweis für die Vater-Ansicht nutzen (nur Kategorien, nie dein Text)</span></label>
-<button class="btn" data-a="log">Eintrag speichern</button></div>
-${recent?`<div class="card"><h3>Zuletzt</h3>${recent}</div>`:''}${drinkCard()}${weightCard()}
-<div class="card"><h2>Für dieses Trimester</h2>${chk('mid',MID[t])}</div>`+settings(true);
+<button class="btn" data-a="log">Eintrag speichern</button></div>`],
+ ['m_recent',recent?`<div class="card"><h3>Zuletzt</h3>${recent}</div>`:''],
+ ['m_drink',drinkCard()],['m_weight',weightCard()],
+ ['m_list',`<div class="card"><h2>Für dieses Trimester</h2>${chk('mid',MID[t])}</div>`]])+settings(true);
 }
 
 // ---------- Vater ----------
@@ -204,12 +211,14 @@ function vF(){
  if(!o.length)o=['Frag nach, was diese Woche am meisten helfen würde. Direkt fragen schlägt Raten.'];
  const st=need.has('l')?'Ich habe Zeit, wenn du reden magst. Wie geht es dir gerade wirklich?':'Was war heute das Schönste und was das Anstrengendste für dich?';
  const last=S.me.slice(-3),nudge=last.length===3&&last.every(e=>e.mood<=2);
- return `${hero(p)}${tipsCard('f',tri(p))}<div class="card"><h2>Heute könnte helfen</h2>${o.map(x=>`<div class="hint">${x}</div>`).join('')}<p class="mute" style="margin-top:12px"><i>Für ein Gespräch: „${st}“</i></p></div>
-<div class="card"><h2>Wie geht es dir heute?</h2><p class="mute">Werdende Eltern erleben Sorgen und Überforderung. Das gehört dazu.</p>${moods('P',P.mood)}
+ return cards('f',[
+ ['f_hero',hero(p)],['f_tips',tipsCard('f',tri(p))],
+ ['f_hints',`<div class="card"><h2>Heute könnte helfen</h2>${o.map(x=>`<div class="hint">${x}</div>`).join('')}<p class="mute" style="margin-top:12px"><i>Für ein Gespräch: „${st}“</i></p></div>`],
+ ['f_self',`<div class="card"><h2>Wie geht es dir heute?</h2><p class="mute">Werdende Eltern erleben Sorgen und Überforderung. Das gehört dazu.</p>${moods('P',P.mood)}
 <textarea rows="3" placeholder="Was beschäftigt dich? (optional)" data-o="P" data-k="note">${esc(P.note)}</textarea><button class="btn" data-a="me">Für mich speichern</button>
 <p class="mute"><small>🔒 Bleibt in diesem Browser und fließt nirgends in die Hinweise ein.</small></p>
-${nudge?`<div class="hint">Dir ging es in letzter Zeit mehrfach nicht gut. Sprich mit jemandem, dem du vertraust, oder mit deiner Hausarztpraxis. ${SOS}</div>`:''}</div>
-<div class="card"><h2>Elternzeit und Finanzen</h2>${chk('plan',PLAN)}<p class="mute"><small>Fristen und Beträge ändern sich. Prüfe sie vor dem Antrag beim Arbeitgeber und im Familienportal des Bundes.</small></p></div>`+settings(false);
+${nudge?`<div class="hint">Dir ging es in letzter Zeit mehrfach nicht gut. Sprich mit jemandem, dem du vertraust, oder mit deiner Hausarztpraxis. ${SOS}</div>`:''}</div>`],
+ ['f_plan',`<div class="card"><h2>Elternzeit und Finanzen</h2>${chk('plan',PLAN)}<p class="mute"><small>Fristen und Beträge ändern sich. Prüfe sie vor dem Antrag beim Arbeitgeber und im Familienportal des Bundes.</small></p></div>`]])+settings(false);
 }
 
 // ---------- Paar ----------
@@ -219,18 +228,69 @@ function vC(){
  const p=PG(),up=S.ev.filter(e=>e.t>Date.now()).sort((a,b)=>a.t-b.t),n=up[0],all=[...S.ev].sort((a,b)=>a.t-b.t);
  const days=n?Math.max(0,Math.ceil((n.t-Date.now())/864e5)):0;
  const hist=Object.entries(S.wk).slice(-4).reverse().map(([k,v])=>`<div class="ev"><span><small>${k}</small><br>Verbunden ${v.c}/5, gehört ${v.h}/5${v.w?'<br>'+esc(v.w):''}</span></div>`).join('');
- return `${hero(p)}${tipsCard('c',tri(p))}${n?`<div class="card"><h2>${days===0?'Heute':'In '+days+(days===1?' Tag':' Tagen')}</h2><p>${esc(n.title)}<br><small>${fmt(n.t)}</small></p></div>`:''}
-<div class="card"><h2>Eure Termine</h2>${all.map(e=>`<div class="ev"><span>${esc(e.title)}<br><small>${fmt(e.t)}</small></span><button class="x" data-a="delev" data-v="${e.id}" aria-label="Löschen">✕</button></div>`).join('')||'<p class="mute">Noch keine Termine.</p>'}
-<input id="et" placeholder="Titel, z. B. Vorsorge"><input id="ed" type="datetime-local"><button class="btn s" data-a="addev">Termin hinzufügen</button></div>
-<div class="card"><h2>Wochen-Check-in</h2><p>Wie verbunden hast du dich diese Woche gefühlt? (${W.c})</p><input type="range" min="1" max="5" value="${W.c}" data-o="W" data-k="c"><div class="row" style="justify-content:space-between;margin:0"><small>kaum</small><small>sehr</small></div>
+ return cards('c',[
+ ['c_hero',hero(p)],['c_tips',tipsCard('c',tri(p))],
+ ['c_next',n?`<div class="card"><h2>${days===0?'Heute':'In '+days+(days===1?' Tag':' Tagen')}</h2><p>${esc(n.title)}<br><small>${fmt(n.t)}</small></p></div>`:''],
+ ['c_events',`<div class="card"><h2>Eure Termine</h2>${all.map(e=>`<div class="ev"><span>${esc(e.title)}<br><small>${fmt(e.t)}</small></span><button class="x" data-a="delev" data-v="${e.id}" aria-label="Löschen">✕</button></div>`).join('')||'<p class="mute">Noch keine Termine.</p>'}
+<input id="et" placeholder="Titel, z. B. Vorsorge"><input id="ed" type="datetime-local"><button class="btn s" data-a="addev">Termin hinzufügen</button></div>`],
+ ['c_week',`<div class="card"><h2>Wochen-Check-in</h2><p>Wie verbunden hast du dich diese Woche gefühlt? (${W.c})</p><input type="range" min="1" max="5" value="${W.c}" data-o="W" data-k="c"><div class="row" style="justify-content:space-between;margin:0"><small>kaum</small><small>sehr</small></div>
 <p>Wie gehört hast du dich gefühlt? (${W.h})</p><input type="range" min="1" max="5" value="${W.h}" data-o="W" data-k="h"><div class="row" style="justify-content:space-between;margin:0"><small>kaum</small><small>sehr</small></div>
-<textarea rows="2" placeholder="Wunsch für nächste Woche (optional)" data-o="W" data-k="w">${esc(W.w)}</textarea><button class="btn" data-a="wk">Speichern</button>${hist?'<h3 style="margin-top:16px">Verlauf</h3>'+hist:''}</div>
-<div class="card"><h2>Geburtsteam</h2>${chk('team',TEAM)}</div>`+settings(true);
+<textarea rows="2" placeholder="Wunsch für nächste Woche (optional)" data-o="W" data-k="w">${esc(W.w)}</textarea><button class="btn" data-a="wk">Speichern</button>${hist?'<h3 style="margin-top:16px">Verlauf</h3>'+hist:''}</div>`],
+ ['c_team',`<div class="card"><h2>Geburtsteam</h2>${chk('team',TEAM)}</div>`]])+settings(true);
 }
 
+// ---------- Layout & Funktionen ----------
+const FEAT={
+m:[['m_hero','Wochenanzeige und Baby-Größe'],['m_tips','Tipps zum Trimester'],['m_checkin','Stimmungs-Check-in'],['m_recent','Letzte Einträge'],['m_drink','Trinktagebuch'],['m_weight','Gewicht'],['m_list','Hebammen-Checkliste']],
+f:[['f_hero','Wochenanzeige und Baby-Größe'],['f_tips','Tipps'],['f_hints','„Heute könnte helfen“'],['f_self','Eigener Check-in'],['f_plan','Elternzeit und Finanzen']],
+c:[['c_hero','Wochenanzeige und Baby-Größe'],['c_tips','Tipps'],['c_next','Nächster Termin'],['c_events','Eure Termine'],['c_week','Wochen-Check-in'],['c_team','Geburtsteam']],
+e:[['e_scan','Barcode scannen'],['e_text','Zutaten prüfen'],['e_hist','Verlauf'],['e_allergy','Meine Allergene']],
+t:[['t_move','Kindsbewegungen zählen'],['t_labor','Wehen-Timer'],['t_plan','Vorsorge-Fahrplan'],['t_ask','Fragenliste'],['t_gp','Geburtsplan']]};
+const FN={};Object.values(FEAT).flat().forEach(([id,n])=>FN[id]=n);
+const TABN={m:'Mutter',f:'Vater',c:'Paar',t:'Mehr',e:'Essen'};
+const FS=[['Normal',1],['Größer',1.12],['Groß',1.25],['Sehr groß',1.4]];
+const PALS={standard:['Standard',null],ozean:['Ozean',[210,200,190,220,170]],wald:['Wald',[140,150,100,120,160]],sonne:['Sonne',[20,30,40,10,50]],lavendel:['Lavendel',[270,260,280,250,290]]};
+const TOOLS={move:['👶','Kindsbewegungen zählen','Zähler mit Ampel und Verlauf'],labor:['⏱️','Wehen-Timer','Dauer und Abstand, mit Hinweis zur Klinik'],plan:['📅','Vorsorge-Fahrplan','Übliche Untersuchungen mit Zeitfenstern'],ask:['📝','Fragenliste','Fragen für Hebamme und Ärzt:in sammeln'],gp:['📋','Geburtsplan','Wünsche ankreuzen und als Text oder PDF ausgeben']};
+function LY(){if(!S.lay||typeof S.lay!=='object'||Array.isArray(S.lay))S.lay={};const l=S.lay;if(!l.off||typeof l.off!=='object')l.off={};if(!l.ord||typeof l.ord!=='object')l.ord={};return l}
+const on=id=>!LY().off[id];
+// gespeicherte Reihenfolge, ergänzt um neue Standard-Einträge, ohne Einträge, die es nicht mehr gibt
+const orderOf=(key,def)=>{const sv=(Array.isArray(LY().ord[key])?LY().ord[key]:[]).filter(i=>def.includes(i));return[...sv,...def.filter(i=>!sv.includes(i))]};
+const visTabs=()=>{const t0=S.role?TABS[S.role]:[],t=orderOf('tabs',t0).filter(x=>on('tab_'+x));return t.length?t:t0};
+// Karten eines Bereichs: ausgeschaltete weglassen, Rest in gewählter Reihenfolge
+function cards(tab,entries){const m=new Map(entries),ids=orderOf(tab,entries.map(e=>e[0])).filter(on);
+ return ids.length?ids.map(id=>m.get(id)||'').join(''):'<div class="card hint">Alle Funktionen dieses Bereichs sind ausgeschaltet. Du kannst sie unter „Layout &amp; Funktionen“ wieder einschalten.</div>'}
+function setOn(id,v){const l=LY();
+ if(id.startsWith('tab_')){const t=id.slice(4),vis=(S.role?TABS[S.role]:[]).filter(x=>x===t?v:on('tab_'+x));if(!vis.length){alert('Mindestens ein Bereich muss sichtbar bleiben.');return false}}
+ if(v)delete l.off[id];else l.off[id]=1;put();return true}
+const hex2=n=>Math.round(n).toString(16).padStart(2,'0');
+function hsl(h,s,l){s/=100;l/=100;const a=s*Math.min(l,1-l),f=n=>{const k=(n+h/30)%12;return l-a*Math.max(-1,Math.min(k-3,9-k,1))};return'#'+[f(0),f(8),f(4)].map(v=>hex2(v*255)).join('')}
+const mixHex=(h,t,k)=>'#'+[1,3,5].map((i,j)=>hex2(parseInt(h.slice(i,i+2),16)*(1-k)+t[j]*k)).join('');
+function palette(dark){const l=LY(),out={},V=['m','f','c','t','e'];
+ if(l.acc&&/^#[0-9a-f]{6}$/i.test(l.acc)){for(const m of V){out['--acc'+m.toUpperCase()]=dark?mixHex(l.acc,[255,255,255],.4):l.acc;out['--bg'+m.toUpperCase()]=dark?mixHex(l.acc,[16,16,18],.9):mixHex(l.acc,[255,255,255],.92)}return out}
+ const P=PALS[l.pal];if(!P||!P[1])return out;
+ V.forEach((m,i)=>{const h=P[1][i];out['--acc'+m.toUpperCase()]=dark?hsl(h,60,72):hsl(h,45,33);out['--bg'+m.toUpperCase()]=dark?hsl(h,25,9):hsl(h,30,94)});return out}
+function applyLay(){const el=document.documentElement,l=LY(),st=el.style;
+ if(l.theme==='l'||l.theme==='d')el.dataset.theme=l.theme==='l'?'light':'dark';else delete el.dataset.theme;
+ el.dataset.dens=l.dens||'n';if(!st)return;
+ st.setProperty('--z',String((FS[l.fs]||FS[0])[1]));
+ const th=el.dataset.theme,dark=th==='dark'||(th!=='light'&&window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches),p=palette(dark);
+ for(const k of['M','F','C','T','E'])for(const x of['--acc','--bg']){const n=x+k;if(p[n])st.setProperty(n,p[n]);else st.removeProperty(n)}}
+const lum=h=>{const c=[1,3,5].map(i=>parseInt(h.slice(i,i+2),16)/255).map(v=>v<=.03928?v/12.92:Math.pow((v+.055)/1.055,2.4));return .2126*c[0]+.7152*c[1]+.0722*c[2]};
+function applyStart(){if(S.role&&LY().start&&visTabs().includes(LY().start))S.mode=LY().start}
+const arrows=(key,id)=>`<span style="display:flex;gap:2px"><button class="x" data-a="lmove" data-v="${key}:${id}:-1" aria-label="Nach oben">▲</button><button class="x" data-a="lmove" data-v="${key}:${id}:1" aria-label="Nach unten">▼</button></span>`;
+function layView(){
+ const l=LY(),t0=TABS[S.role]||[],tabsO=orderOf('tabs',t0),chips=(arr,cur,act)=>arr.map(([v,t])=>`<button class="chip ${cur===v?'on':''}" data-a="${act}" data-v="${v}">${t}</button>`).join('');
+ return `<h1>Layout &amp; Funktionen</h1><div class="card hint">Hier schaltest du Bereiche und Funktionen ein oder aus und passt Aussehen und Reihenfolge an. Ausgeschaltete Funktionen werden nur ausgeblendet, <b>deine Daten bleiben erhalten</b>. Die Warnsignale lassen sich nicht ausschalten.</div>
+<div class="card"><h2>Bereiche</h2><p class="mute"><small>Die Leiste unten. Mindestens ein Bereich bleibt sichtbar.</small></p>${tabsO.map(t=>`<div class="ev"><label class="ck" style="padding:0"><input type="checkbox" data-c="lay" data-id="tab_${t}" ${on('tab_'+t)?'checked':''}><span>${TABN[t]}</span></label>${arrows('tabs',t)}</div>`).join('')}
+<p style="margin:14px 0 6px">Startseite</p><div class="row">${chips([['','Zuletzt geöffnet'],...tabsO.filter(t=>on('tab_'+t)).map(t=>[t,TABN[t]])],l.start||'','lstart')}</div></div>
+<div class="card"><h2>Funktionen</h2>${t0.map(t=>`<h3 style="margin-top:12px">${TABN[t]}</h3>${FEAT[t].map(([id,n])=>`<label class="ck"><input type="checkbox" data-c="lay" data-id="${id}" ${on(id)?'checked':''}><span>${n}</span></label>`).join('')}${t==='t'?'<div class="ck"><span>🔒 Warnsignale und Notruf (immer an)</span></div>':''}`).join('')}</div>
+<div class="card"><h2>Reihenfolge der Karten</h2>${t0.map(t=>`<details style="margin:0 0 8px"><summary>${TABN[t]}</summary>${orderOf(t,FEAT[t].map(x=>x[0])).map(id=>`<div class="ev"><span style="${on(id)?'':'opacity:.5'}">${FN[id]}${on(id)?'':' (aus)'}</span>${arrows(t,id)}</div>`).join('')}</details>`).join('')}</div>
+<div class="card"><h2>Darstellung</h2><p>Schriftgröße</p><div class="row">${chips(FS.map(([n],i)=>[String(i),n]),String(l.fs||0),'lfs')}</div><p>Abstände</p><div class="row">${chips([['c','Kompakt'],['n','Normal'],['l','Luftig']],l.dens||'n','ldens')}</div><p>Farbschema</p><div class="row">${chips([['s','System'],['l','Hell'],['d','Dunkel']],l.theme||'s','ltheme')}</div><p>Farbpalette</p><div class="row">${chips(Object.entries(PALS).map(([k,v])=>[k,v[0]]),l.acc?'':(l.pal||'standard'),'lpal')}</div>
+<p>Eigene Akzentfarbe</p><div style="display:flex;gap:10px;align-items:center"><input type="color" data-c="layacc" value="${l.acc||'#8a3b5e'}" style="width:64px;height:44px;padding:2px;margin:0" aria-label="Akzentfarbe"><button class="chip" data-a="laccclear">Entfernen</button></div><p class="mute"><small>Sehr helle oder sehr dunkle Farben werden abgelehnt, damit der Text lesbar bleibt.</small></p></div>
+<div class="card"><h2>Zurücksetzen</h2><button class="btn d" data-a="lreset">Layout und Funktionen zurücksetzen</button><p class="mute"><small>Deine Einträge bleiben erhalten.</small></p></div>`}
 // ---------- Mehr: Werkzeuge ----------
 const dur=ms=>{const t=Math.max(0,Math.floor(ms/1000)),h=Math.floor(t/3600),m=Math.floor(t%3600/60);return(h?h+':'+String(m).padStart(2,'0'):m)+':'+String(t%60).padStart(2,'0')};
-const WL='<div style="text-align:right;margin:-6px 0 6px"><button class="x" style="font-size:14px;color:var(--r)" data-a="warnlink">🚨 Warnsignale &amp; Notruf</button></div>';
+const WL='<div style="text-align:right;margin:-6px 0 6px"><button class="x" style="font-size:14px" data-a="laylink">🎛️ Anpassen</button><button class="x" style="font-size:14px;color:var(--r)" data-a="warnlink">🚨 Warnsignale &amp; Notruf</button></div>';
 const NUMS=[['112','Notruf','Lebensgefahr, starke Blutung, Atemnot, Krampfanfall','112'],['116117','Ärztlicher Bereitschaftsdienst','Außerhalb der Sprechzeiten','116 117'],['08001110111','Telefonseelsorge','Kostenlos, rund um die Uhr','0800 111 0 111'],['08004040020','Schwangere in Not','Beratung, kostenlos und anonym','0800 40 40 020'],['116016','Hilfetelefon Gewalt gegen Frauen','Kostenlos, rund um die Uhr','116 016']];
 const WARN=[
 ['r','Sofort 112 anrufen',['Starke Blutung','Atemnot oder Brustschmerzen','Krampfanfall oder Bewusstlosigkeit','Sehr starke, anhaltende Bauchschmerzen, besonders mit hartem Bauch','Starke Kopfschmerzen mit Sehstörungen und Schmerzen im rechten Oberbauch','Gedanken, dir oder dem Baby etwas anzutun']],
@@ -363,9 +423,9 @@ ${GP.map(([id,t,opts])=>`<div class="card"><h2>${t}</h2><div class="row">${opts.
 function vT(){
  if(!S.role)return welcome();
  const t=S.tool,back='<button class="chip" data-a="tool" data-v="" style="margin-bottom:12px">← Zurück</button>';
- const V={warn:warnView,move:moveView,labor:laborView,plan:planView,ask:askView,gp:gpView}[t];
- if(V)return back+V();
- const T=[['warn','🚨','Warnsignale und Notruf','Wann du sofort anrufst, plus wichtige Nummern'],['move','👶','Kindsbewegungen zählen','Zähler mit Ampel und Verlauf'],['labor','⏱️','Wehen-Timer','Dauer und Abstand, mit Hinweis zur Klinik'],['plan','📅','Vorsorge-Fahrplan','Übliche Untersuchungen mit Zeitfenstern'],['ask','📝','Fragenliste','Fragen für Hebamme und Ärzt:in sammeln'],['gp','📋','Geburtsplan','Wünsche ankreuzen und als Text oder PDF ausgeben']];
+ const V={warn:warnView,move:moveView,labor:laborView,plan:planView,ask:askView,gp:gpView,lay:layView}[t];
+ if(V&&(t==='warn'||t==='lay'||on('t_'+t)))return back+V();
+ const T=[['warn','🚨','Warnsignale und Notruf','Wann du sofort anrufst, plus wichtige Nummern'],...orderOf('t',FEAT.t.map(x=>x[0])).filter(on).map(id=>[id.slice(2),...TOOLS[id.slice(2)]]),['lay','🎛️','Layout & Funktionen','Bereiche, Karten, Farben und Schrift anpassen']];
  return `<h1>Mehr</h1>${T.map(([k,e,a,b])=>`<button class="tool" data-a="tool" data-v="${k}"><span style="font-size:28px">${e}</span> <b>${a}</b><small>${b}</small></button>`).join('')}`}
 
 // ---------- Essen (Safe to Eat) ----------
@@ -436,10 +496,12 @@ const histCard=()=>S.sh.length?`<div class="card"><h2>Verlauf</h2>${S.sh.slice(0
 function vE(){
  const cur=F.view&&S.sh.find(e=>e.id===F.view);
  if(cur)return `<h1>Safe to Eat</h1>`+(F.edit?editCard(cur):resCard(cur));
- return `<h1>Safe to Eat</h1><div class="card"><h2>Barcode</h2>${F.cam?'<video id="vid" playsinline muted autoplay style="width:100%;max-height:50vh;object-fit:cover;border-radius:16px;background:#000"></video><button class="btn s" data-a="camoff">Abbrechen</button>':'<button class="btn" data-a="cam">Mit Kamera scannen</button>'}
-<input inputmode="numeric" placeholder="oder Barcode-Nummer (EAN)" value="${esc(F.code)}" data-o="F" data-k="code" style="margin-top:12px"><button class="btn s" data-a="scan">Nachschlagen</button>${F.msg?`<p class="mute" style="margin-top:10px">${F.msg}</p>`:''}</div>
-<div class="card"><h2>Zutaten prüfen</h2><p class="mute">Füge die Zutatenliste oder den Produktnamen ein. Du bekommst dieselbe Auswertung wie beim Scannen.</p><textarea rows="3" placeholder="z. B. Rohmilchkäse, Salami, Tonic Water …" data-o="F" data-k="txt">${esc(F.txt)}</textarea><button class="btn" data-a="check">Prüfen</button></div>
-${histCard()}<details><summary>Meine Allergene</summary><div class="card"><div class="row">${ALL.map(([k,l])=>`<button class="chip ${S.myAll.includes(k)?'on':''}" data-a="al" data-v="${k}">${l}</button>`).join('')}</div></div></details>`;
+ return `<h1>Safe to Eat</h1>`+cards('e',[
+ ['e_scan',`<div class="card"><h2>Barcode</h2>${F.cam?'<video id="vid" playsinline muted autoplay style="width:100%;max-height:50vh;object-fit:cover;border-radius:16px;background:#000"></video><button class="btn s" data-a="camoff">Abbrechen</button>':'<button class="btn" data-a="cam">Mit Kamera scannen</button>'}
+<input inputmode="numeric" placeholder="oder Barcode-Nummer (EAN)" value="${esc(F.code)}" data-o="F" data-k="code" style="margin-top:12px"><button class="btn s" data-a="scan">Nachschlagen</button>${F.msg?`<p class="mute" style="margin-top:10px">${F.msg}</p>`:''}</div>`],
+ ['e_text',`<div class="card"><h2>Zutaten prüfen</h2><p class="mute">Füge die Zutatenliste oder den Produktnamen ein. Du bekommst dieselbe Auswertung wie beim Scannen.</p><textarea rows="3" placeholder="z. B. Rohmilchkäse, Salami, Tonic Water …" data-o="F" data-k="txt">${esc(F.txt)}</textarea><button class="btn" data-a="check">Prüfen</button><button class="btn s" data-a="paste">📋 Aus Zwischenablage einfügen</button><p class="mute"><small>Tipp ohne Kosten: Zutatenliste mit der Kamera-App fotografieren, den Text im Foto antippen und halten (Live Text), „Kopieren“ wählen und hier „Einfügen“ tippen.</small></p></div>`],
+ ['e_hist',histCard()],
+ ['e_allergy',`<details><summary>Meine Allergene</summary><div class="card"><div class="row">${ALL.map(([k,l])=>`<button class="chip ${S.myAll.includes(k)?'on':''}" data-a="al" data-v="${k}">${l}</button>`).join('')}</div></div></details>`]]);
 }
 async function scan(){
  const code=F.code.replace(/\D/g,'');F.view=null;F.edit=false;
@@ -500,6 +562,17 @@ const A={
  hdel(v){if(!confirm('Diesen Eintrag löschen?'))return;S.sh=S.sh.filter(x=>x.id!==v);if(F.view===v){F.view=null;F.edit=false}put();render()},
  hclear(){if(confirm('Den ganzen Verlauf löschen?')){S.sh=[];F.view=null;F.edit=false;put();render()}},
  scan,exp,
+ laylink(){S.mode='t';S.tool='lay';put();render();scrollTo(0,0)},
+ lmove(v){const[k,id,d]=v.split(':'),def=k==='tabs'?(S.role?TABS[S.role]:[]):FEAT[k].map(x=>x[0]),o=orderOf(k,def),i=o.indexOf(id),j=i+(+d);if(i<0||j<0||j>=o.length)return;[o[i],o[j]]=[o[j],o[i]];LY().ord[k]=o;put();render()},
+ lstart(v){LY().start=v;put();render()},
+ lfs(v){LY().fs=Math.max(0,Math.min(FS.length-1,+v||0));put();render()},
+ ldens(v){LY().dens=['c','n','l'].includes(v)?v:'n';put();render()},
+ ltheme(v){LY().theme=['s','l','d'].includes(v)?v:'s';put();render()},
+ lpal(v){LY().pal=PALS[v]?v:'standard';delete LY().acc;put();render()},
+ laccset(v){const h=String(v||'').toLowerCase();if(!/^#[0-9a-f]{6}$/.test(h))return;const l=lum(h);if(l<.02||l>.45){alert('Diese Farbe ist zu hell oder zu dunkel, der Text wäre schlecht lesbar. Wähle eine mittlere bis dunkle Farbe.');render();return}LY().acc=h;put();render()},
+ laccclear(){delete LY().acc;put();render()},
+ lreset(){if(!confirm('Layout und Funktionen zurücksetzen? Deine Einträge bleiben erhalten.'))return;S.lay={};put();render()},
+ paste(){if(!(navigator.clipboard&&navigator.clipboard.readText)){alert('Einfügen per Knopf geht hier nicht. Halte im Textfeld gedrückt und wähle „Einfügen“.');return}navigator.clipboard.readText().then(t=>{F.txt=String(t||'').slice(0,3000);render()}).catch(()=>alert('Einfügen nicht erlaubt. Halte im Textfeld gedrückt und wähle „Einfügen“.'))},
  ics(v){const r=planRows().find(x=>x.id===v);if(r&&S.due)shareFile(icsOf([r]),'trio-'+r.id+'.ics','text/calendar')},
  icsall(){const p=PG();if(!p)return;const rows=planRows().filter(r=>!r.done&&p.f<r.to);if(rows.length)shareFile(icsOf(rows),'trio-vorsorge.ics','text/calendar')},
  gpo(v){const o=GPd().o;o[v]=o[v]==='w'?'n':o[v]==='n'?'':'w';if(!o[v])delete o[v];put();render()},
@@ -538,13 +611,13 @@ const A={
  al(v){S.myAll=S.myAll.includes(v)?S.myAll.filter(x=>x!==v):[...S.myAll,v];put();render()}
 };
 document.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(b&&A[b.dataset.a])A[b.dataset.a](b.dataset.v,b)});
-document.addEventListener('change',e=>{const b=e.target,c=b.dataset.c;if(c==='tick'){S[b.dataset.s][b.dataset.v]=b.checked;put()}if(c==='share')D.share=b.checked;if(c==='cds')DR.cs=b.checked;if(c==='qtick'){const q=S.q.find(x=>x.id===b.dataset.v);if(q){q.done=b.checked;put();render()}}if(c==='imp'){const f=b.files[0];if(!f)return;f.text().then(t=>{try{const d=JSON.parse(t);if(!d||!Array.isArray(d.log))throw 0;if(!confirm('Aktuelle Daten durch das Backup ersetzen?'))return;S=Object.assign({},S,d);put();render()}catch(e){alert('Diese Datei ist kein Trio-Backup.')}})}});
+document.addEventListener('change',e=>{const b=e.target,c=b.dataset.c;if(c==='tick'){S[b.dataset.s][b.dataset.v]=b.checked;put()}if(c==='share')D.share=b.checked;if(c==='lay'){setOn(b.dataset.id,b.checked);render()}if(c==='layacc')A.laccset(b.value);if(c==='cds')DR.cs=b.checked;if(c==='qtick'){const q=S.q.find(x=>x.id===b.dataset.v);if(q){q.done=b.checked;put();render()}}if(c==='imp'){const f=b.files[0];if(!f)return;f.text().then(t=>{try{const d=JSON.parse(t);if(!d||!Array.isArray(d.log))throw 0;if(!confirm('Aktuelle Daten durch das Backup ersetzen?'))return;S=Object.assign({},S,d);put();render()}catch(e){alert('Diese Datei ist kein Trio-Backup.')}})}});
 document.addEventListener('input',e=>{const b=e.target,o=b.dataset.o;if(b.dataset.g){GPd()[b.dataset.g]=b.value;put();return}if(!o)return;const v=(b.type==='range'||b.type==='number')?+b.value:b.value;O[o][b.dataset.k]=v;
  if(o==='DR'&&b.dataset.k==='ml'){const r=$('#dr'),n=$('#dm'),l=$('#drl');if(r&&b!==r)r.value=Math.min(1000,v);if(n&&b!==n)n.value=v;if(l)l.textContent=v+' ml'}
  else if(b.type==='range'&&b.previousElementSibling)b.previousElementSibling.textContent=b.previousElementSibling.textContent.replace(/\(\d\)/,`(${v})`)});
-function render(){const y=scrollY;stopCam();const tabs=S.role?TABS[S.role]:[];if(tabs.length&&!tabs.includes(S.mode))S.mode=tabs[0];
- document.documentElement.dataset.mode=S.mode;{let h=({m:vM,f:vF,c:vC,e:vE,t:vT})[S.mode]();if(S.role&&S.mode!=='t')h=WL+h;$('#app').innerHTML=h}
- $('nav').hidden=!S.role;document.querySelectorAll('nav button').forEach(b=>{b.hidden=!tabs.includes(b.dataset.v);b.classList.toggle('on',b.dataset.v===S.mode)});
+function render(){const y=scrollY;stopCam();const tabs=visTabs(),keep=S.mode==='t'&&(S.tool==='warn'||S.tool==='lay');if(tabs.length&&!tabs.includes(S.mode)&&!keep)S.mode=tabs[0];
+ document.documentElement.dataset.mode=S.mode;applyLay();{let h=({m:vM,f:vF,c:vC,e:vE,t:vT})[S.mode]();if(S.role&&S.mode!=='t')h=WL+h;$('#app').innerHTML=h}
+ $('nav').hidden=!S.role;document.querySelectorAll('nav button').forEach(b=>{b.hidden=!tabs.includes(b.dataset.v);if(b.style)b.style.order=Math.max(0,tabs.indexOf(b.dataset.v));b.classList.toggle('on',b.dataset.v===S.mode)});
  scrollTo(0,y);if(F.cam&&S.mode==='e')startCam();else F.cam=false}
 // ---------- Automatische Updates ----------
 let REG=null,VER=null,RLD=false;
@@ -566,5 +639,5 @@ addEventListener('load',()=>verOf().then(v=>VER=v));
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')checkUpdate(false)});
 setInterval(()=>{const r=S.mvRun,a=$('#mvt');if(r){if(a)a.textContent=dur(Date.now()-r.t0);if(Date.now()-r.t0>=72e5&&!r.w){r.w=1;put();render()}}const l=$('#lbt');if(S.lbRun&&l)l.textContent=dur(Date.now()-S.lbRun)},1000);
 try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
-render();
+applyStart();render();
 </script></body></html>
